@@ -20,13 +20,13 @@ void fm_next();
 
 void fm_skip();
 
-void fm_love();
-
-void fm_unlove();
-
 void fm_ban();
 
-void fm_recording();
+int fm_love();
+
+int fm_unlove();
+
+int fm_recording();
 
 void fm_download();
 

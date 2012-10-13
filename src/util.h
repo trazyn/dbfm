@@ -32,4 +32,6 @@ void echo(int enable);
 
 char *meta(const struct hash **track, const char *fmt, char *buf);
 
+int arridx(const char **arr, char *value);
+
 #endif

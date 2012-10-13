@@ -70,10 +70,12 @@ void fm_run(struct playlist *pl)
 			die("failed to fork process");
 
 		case 0:
+			signal(SIGINT, SIG_IGN);
+
 			fprintf(stderr, meta((const struct hash **)current, "\nPLAYING: [%a - %t]\n", text));
 
 			play(URL, value((const struct hash **)rc, "driver"));
-			_exit(EXIT_SUCCESS);
+			exit(EXIT_SUCCESS);
 
 		default:
 			break;
@@ -94,30 +96,52 @@ void fm_skip()
 	fm_run(list);
 }
 
-void fm_love(struct playlist *pl)
+int fm_love(struct playlist *pl)
 {
+	char **resp = NULL;
+
 	if(!LOVE)
 	{
 		ack = CMD_LOVE;
 
-		free_response(api_send_request(CMD_LOVE, SID, NULL));
+		resp = api_send_request(CMD_LOVE, SID, NULL);
+
+		if(NULL == resp)
+		{
+			return -1;
+		}
 
 		erase(&current, "like");
 		set(&current, "like", "1");
+
+		free_response(resp);
 	}
+
+	return 0;
 }
 
-void fm_unlove()
+int fm_unlove()
 {
+	char **resp = NULL;
+
 	if(LOVE)
 	{
 		ack = CMD_UNLOEV;
 
-		free_response(api_send_request(CMD_UNLOEV, SID, NULL));
+		resp = api_send_request(CMD_UNLOEV, SID, NULL);
+
+		if(NULL == resp)
+		{
+			return -1;
+		}
 
 		erase(&current, "like");
 		set(&current, "like", "0");
+
+		free_response(resp);
 	}
+
+	return 0;
 }
 
 void fm_ban()
@@ -130,9 +154,24 @@ void fm_ban()
 	fm_run(list);
 }
 
-void fm_recording()
+int fm_recording()
 {
-	free_response(api_send_request(CMD_NEXT, SID, NULL));
+	char **resp = api_send_request(CMD_NEXT, SID, NULL);
+
+	if(NULL == resp)
+	{
+		return -1;
+	}
+
+	if(!EQUAL(*resp, "ok"))
+	{
+		free_response(resp);
+		return -1;
+	}
+
+	free_response(resp);
+
+	return 0;
 }
 
 void fm_download()
@@ -243,8 +282,6 @@ static void sig_waitplay(int signo)
 	}
 	else if(WIFEXITED(status) && EXIT_FAILURE == WEXITSTATUS(status))
 	{
-		fm_stop();
-
 		exit(EXIT_FAILURE);
 	}
 }

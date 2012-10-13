@@ -126,3 +126,10 @@ void erase(struct hash ***arr, const char *key)
 		(*arr)[idx] = 0;
 	}
 }
+
+void overwrite(struct hash ***arr, const char *key, const char *value)
+{
+	erase(arr, key);
+
+	set(arr, key, value);
+}

@@ -224,6 +224,7 @@ static void pl_load(struct playlist *pl)
 	for(int i = tracks->length - 1; i >= 0; i--)
 	{
 		struct json_object *o = (struct json_object *)array_list_get_idx(tracks, i);
+
 		ptr = calloc(sizeof *ptr, 1);
 
 		assert(ptr);

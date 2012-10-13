@@ -33,7 +33,7 @@ static char from_hex(char ch);
 
 static FILE *ropen(const char *host, unsigned short port, int timeout)
 {
-	int fd, flags, ret;
+	int fd, ret;
 
 	struct hostent *entry;
 	struct sockaddr_in server;
@@ -41,6 +41,7 @@ static FILE *ropen(const char *host, unsigned short port, int timeout)
 	if(entry = gethostbyname(host), NULL == entry)
 	{
 		_ERROR("failed to get host(%s) info\n", host);
+
 		return NULL;
 	}
 
@@ -55,9 +56,7 @@ static FILE *ropen(const char *host, unsigned short port, int timeout)
 		return NULL;
 	}
 
-	flags = fcntl(fd, F_GETFL);
-
-	fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+	fcntl(fd, F_SETFL, O_NONBLOCK);
 
 	connect(fd, (struct sockaddr *)&server, sizeof(struct sockaddr));
 
@@ -80,7 +79,7 @@ static FILE *ropen(const char *host, unsigned short port, int timeout)
 
 	ret = select(fd + 1, &fdset, &fdset, &fdset, tvp);
 
-	fcntl(fd, F_SETFL, flags);
+	fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) & ~O_NONBLOCK);
 
 	if(0 == ret)
 	{

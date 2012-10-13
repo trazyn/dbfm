@@ -23,6 +23,8 @@ const char *value(const struct hash **hash, const char *key);
 
 void erase(struct hash ***arr, const char *key);
 
+void overwrite(struct hash ***arr, const char *key, const char *value);
+
 void cleanup(struct hash **ptr);
 
 int length(const struct hash **arr);

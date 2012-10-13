@@ -10,6 +10,7 @@
 #include "channel.h"
 #include "config.h"
 #include "http.h"
+#include "log.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,7 +26,10 @@ void channels(struct hash ***arr)
 
 	snprintf(channelfile, FILENAME_MAX, "%s/%s/%s", getenv("XDG_CONFIG_HOME"), CFG_PATH, CHANNEL_FILE);
 
-	resp = fetch(CHANNEL_API, NULL, NULL, NULL);
+	if(resp = fetch(CHANNEL_API, NULL, NULL, NULL), NULL == resp)
+	{
+		die("failed to get channels");
+	}
 
 	channels_parse(arr, json_tokener_parse(*resp));
 

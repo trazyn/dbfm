@@ -44,7 +44,7 @@ void duration(void *data, void (*func)(void *), int nsec)
 
 void prompt(const char *text, char *save, int size, enum input_type type)
 {
-	fprintf(stderr, "%s", text ? text : "");
+	fprintf(stderr, "\n%s", text ? text : "");
 
 	fflush(stderr);
 
@@ -196,3 +196,15 @@ char *meta(const struct hash **track, const char *fmt, char *buf)
 	return buf;
 }
 
+int arridx(const char **arr, char *value)
+{
+	for(int i = 0; arr[i]; i++)
+	{
+		if(strlen(value) == strlen(arr[i]) && (0 == strcasecmp(arr[i], value)))
+		{
+			return i;
+		}
+	}
+
+	return -1;
+}

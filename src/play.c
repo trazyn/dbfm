@@ -62,8 +62,7 @@ void play(const char *location, const char *driver)
 
 	if(-1 == data.driver_id)
 	{
-		_ERROR("unable to find any usable output device");
-		_exit(EXIT_FAILURE);
+		die("unable to find any usable output device");
 	}
 
 	data.fmt.bits = 16;
@@ -74,8 +73,7 @@ void play(const char *location, const char *driver)
 
 	if(NULL == data.device)
 	{
-		_ERROR("unable to open device: %s", strerror(errno));
-		_exit(EXIT_FAILURE);
+		die("unable to open device: %s", strerror(errno));
 	}
 
 	mad_decoder_init(&dec, &data, input, NULL, NULL, output, NULL, NULL);

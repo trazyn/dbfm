@@ -10,6 +10,8 @@
 #ifndef HANDLER_H
 #define HANDLER_H
 
-void handler(int listenfd);
+void handle(int listenfd);
+
+int tcpsock(unsigned short port);
 
 #endif
