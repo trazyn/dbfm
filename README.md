@@ -3,7 +3,7 @@ dbfm
 
 a client of douban.fm
 
-copy dbfm.conf to $XDG_CONFIG_HOME/dbfm/
+copy conf/* to $XDG_CONFIG_HOME/dbfm/
 
 type make and run with option '-h'
 
