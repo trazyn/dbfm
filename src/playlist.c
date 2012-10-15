@@ -62,55 +62,6 @@ const struct hash **pl_current(struct playlist *pl)
 	return track;
 }
 
-void pl_preview(struct playlist *pl)
-{
-	struct tracknode *nodes = pl->list;
-	struct stat st;
-
-	/* make sure playlist is valid */
-	pl_current(pl);
-
-	/* stdout is not tty */
-	if(-1 == fstat(STDOUT_FILENO, &st) || !S_ISCHR(st.st_mode))
-	{
-		return;
-	}
-
-	register int idx = 0;
-
-	printf("\n");
-	for(struct tracknode *node = nodes; node;)
-	{
-		//printf("%-16s - %-32s\t", 
-				  //value((const struct hash **)node->track, "artist"), 
-				  //value((const struct hash **)node->track, "title")
-			  //);
-		printf("%-32s\t", value((const struct hash **)node->track, "title"));
-
-		if(idx == pl->position)
-		{
-			fputs("[PLAYING...]", stdout);
-		}
-		else if(idx < pl->position)
-		{
-			fputs("[PLAYED]", stdout);
-		}
-		else
-		{
-			fputs("[WAITING]", stdout);
-		}
-
-		puts("");
-
-		fflush(stdout);
-
-		node = node->next;
-
-		++idx;
-	}
-	printf("\n");
-}
-
 void pl_destroy(struct playlist *pl)
 {
 	if(NULL == pl)

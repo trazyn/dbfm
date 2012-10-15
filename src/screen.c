@@ -12,14 +12,17 @@
 
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 #include <locale.h>
+
+typedef void (screen_t)(void *);
 
 static screen_t *current = scr_track;
 
-void scr_setup()
-{
-	atexit(scr_destroy);
+static void scr_load(screen_t *screen, void *args);
 
+void scr_start()
+{
 	setlocale(LC_ALL, "");
 
 	initscr();
@@ -36,36 +39,30 @@ void scr_setup()
 	{
 		start_color();
 
-		init_pair(1, COLOR_GREEN, 0);
-		init_pair(2, COLOR_RED, 0);
-		init_pair(3, COLOR_BLUE, 0);
-		init_pair(4, COLOR_CYAN, 0);
-		init_pair(5, COLOR_MAGENTA, 0);
-		init_pair(6, COLOR_YELLOW, 0);
+		use_default_colors();
+
+		init_pair(0, COLOR_WHITE, -1);
+		init_pair(1, COLOR_GREEN, -1);
+		init_pair(2, COLOR_RED, -1);
+		init_pair(3, COLOR_BLUE, -1);
+		init_pair(4, COLOR_CYAN, -1);
+		init_pair(5, COLOR_MAGENTA, -1);
+		init_pair(6, COLOR_YELLOW, -1);
 	}
 
 	scr_load(current, NULL);
 }
 
-void scr_destroy()
+void scr_end()
 {
 	clear();
 
 	endwin();
 }
 
-void scr_load(screen_t *screen, void *args)
-{
-	current = screen;
-
-	clear();
-
-	screen(args);
-}
-
 void scr_putline(unsigned line, char *s, unsigned start, unsigned end, int attr, int color)
 {
-	attron(attr | COLOR_PAIR(color));
+	attron(attr | color);
 
 	while(start < end)
 	{
@@ -74,16 +71,28 @@ void scr_putline(unsigned line, char *s, unsigned start, unsigned end, int attr,
 		++start;
 	}
 
-	attroff(attr | COLOR_PAIR(color));
+	attroff(attr | color);
 
 	refresh();
 }
 
+void scr_progress(const struct progress *prgs)
+{
+	if(prgs->position > prgs->max || prgs->position < prgs->min)
+	{
+		return;
+	}
+
+	/* done */
+	scr_putline(prgs->line, prgs->done, prgs->min, prgs->position, prgs->attr, prgs->color);
+
+	/* undone */
+	scr_putline(prgs->line, prgs->undone, prgs->position + strlen(prgs->done), prgs->max, prgs->attr, prgs->color);
+}
+
 void handle_screen()
 {
-	atexit(scr_destroy);
-
-	scr_setup();
+	scr_start();
 
 	while(1)
 	{
@@ -92,27 +101,31 @@ void handle_screen()
 		switch(ch)
 		{
 			case 'Q':
+				clear();
+				scr_end();
+				fm_stop();
+
 				exit(EXIT_SUCCESS);
 
 			case 'j':
 				if(scr_help == current)
 				{
-					scr_scroll_help(1);
+					scr_helpscrl(1);
 				}
 				else if(scr_playlist == current)
 				{
-					scr_scroll_pl(1);
+					scr_plscrl(1);
 				}
 				break;
 
 			case 'k':
 				if(scr_help == current)
 				{
-					scr_scroll_help(-1);
+					scr_helpscrl(-1);
 				}
 				else if(scr_playlist == current)
 				{
-					scr_scroll_pl(-1);
+					scr_plscrl(-1);
 				}
 				break;
 
@@ -121,7 +134,7 @@ void handle_screen()
 				break;
 
 			case 'p':
-				scr_scroll_pl(-10000);
+				scr_plscrl(-10000);
 				scr_load(scr_playlist, NULL);
 				break;
 
@@ -155,7 +168,7 @@ void handle_screen()
 				break;
 				
 			case '?':
-				scr_scroll_help(-10000);
+				scr_helpscrl(-10000);
 				scr_load(scr_help, NULL);
 				break;
 
@@ -165,3 +178,20 @@ void handle_screen()
 	}
 }
 
+static void scr_load(screen_t *screen, void *args)
+{
+	current = screen;
+
+	clear();
+
+	if(scr_track != current)
+	{
+		scr_trackprgs(0);
+	}
+	else
+	{
+		scr_trackprgs(1);
+	}
+
+	screen(args);
+}

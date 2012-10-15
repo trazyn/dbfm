@@ -22,6 +22,7 @@
 #define COLOR_EXPIRE 				COLOR_YELLOW
 #define COLOR_PLAYING 				COLOR_GREEN
 #define COLOR_WAITING 				COLOR_CYAN
+#define COLOR_SEPARATE 				COLOR_PAIR(3)
 
 static int position;
 
@@ -37,12 +38,12 @@ void scr_playlist(void *args)
 
 	signal(SIGWINCH, sig_resize);
 
-	memcpy(pl, fm_playlist(), sizeof(struct playlist));
+	memcpy(pl, fm_plinfo(), sizeof(struct playlist));
 
 	nodes = pl->list;
 
-	scr_putline(2, "=", 4, COLS - 4, A_BOLD, 1);
-	scr_putline(LINES - 3, "=", 4, COLS - 4, A_BOLD, 1);
+	scr_putline(2, "=", 4, COLS - 4, A_BOLD, COLOR_SEPARATE);
+	scr_putline(LINES - 3, "=", 4, COLS - 4, A_BOLD, COLOR_SEPARATE);
 
 	if(NULL == win)
 	{
@@ -99,7 +100,7 @@ void scr_playlist(void *args)
 	wrefresh(win);
 }
 
-void scr_scroll_pl(int i)
+void scr_plscrl(int i)
 {
 	int active = pl->length - (LINES - 6) / 2;
 
@@ -126,7 +127,7 @@ static void sig_resize(int signo)
 
 	win = NULL;
 
-	scr_destroy();
+	scr_end();
 
-	scr_setup();
+	scr_start();
 }

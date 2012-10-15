@@ -30,14 +30,12 @@ int fm_recording();
 
 void fm_download();
 
-void fm_list();
-
 void fm_channel();
 
 void fm_stop();
 
-const struct playlist *fm_playlist();
+const struct playlist *fm_plinfo();
 
-const struct hash **fm_track();
+const struct hash **fm_trackinfo();
 
 #endif

@@ -7,6 +7,8 @@
  * tn.razy@gmail.com
  */
 
+#define ___DEBUG
+
 #include "fm.h"
 #include "api.h"
 #include "play.h"
@@ -14,6 +16,7 @@
 #include "log.h"
 #include "util.h"
 #include "http.h"
+#include "screen.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -80,8 +83,8 @@ void fm_run(struct playlist *pl)
 		}
 	}
 
+	current = (struct hash **)pl_current(pl);
 	list = pl;
-	current = (struct hash **)pl_current(list);
 
 	switch((playproc = fork()))
 	{
@@ -94,6 +97,10 @@ void fm_run(struct playlist *pl)
 
 			close(STDIN_FILENO);
 
+			_DEBUG("PLAY: %s(%d) | %d / %d\n", 
+			  				value((const struct hash **)current, "title"),
+			  				value((const struct hash **)current, "sid"),
+			  				list->position, list->length);
 			play(URL);
 
 			exit(EXIT_SUCCESS);
@@ -109,6 +116,8 @@ void fm_next()
 	list->position++;
 
 	fm_run(list);
+
+	SCREEN_UPDATE();
 }
 
 void fm_skip()
@@ -264,11 +273,6 @@ void fm_stop()
 	list = NULL;
 }
 
-void fm_list()
-{
-	pl_preview(list);
-}
-
 void fm_channel()
 {
 	list->position = -1;
@@ -276,12 +280,12 @@ void fm_channel()
 	fm_run(list);
 }
 
-const struct playlist *fm_playlist()
+const struct playlist *fm_plinfo()
 {
 	return list;
 }
 
-const struct hash **fm_track()
+const struct hash **fm_trackinfo()
 {
 	return (const struct hash **)current;
 }

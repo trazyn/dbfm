@@ -14,6 +14,7 @@
 #include "fm.h"
 #include "log.h"
 #include "playlist.h"
+#include "util.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,8 +26,6 @@
 #include <signal.h>
 
 #define PID_FILE 						"/tmp/dbfm.pid"
-
-static void safe_exit();
 
 static void usage();
 
@@ -40,7 +39,7 @@ struct hash **token;
 
 struct hash **station;
 
-const char short_options[] = "hde:p:";
+const char short_options[] = "hndDe:p:";
 
 const struct option long_options[] = 
 {
@@ -48,6 +47,7 @@ const struct option long_options[] =
 	{"email", 	required_argument, 	NULL, 'e'},
 	{"password", 	required_argument, 	NULL, 'p'},
 	{"daemon", 	no_argument, 		NULL, 'd'},
+	{"debug", 	no_argument, 		NULL, 'D'},
 	{NULL, 		0, 			NULL, 	0}
 };
 
@@ -55,7 +55,7 @@ static struct user user = { .session = &token, .email = { 0 }, .password = { 0 }
 
 int main(int argc, char **argv)
 {
-	int background = 0, listenfd = 0;
+	int background = 0, debug = 0, listenfd = 0;
 	char cfgfile[FILENAME_MAX];
 
 	struct playlist playlist = { .list = NULL, .position = 0, .length = 0, .history = NULL };
@@ -83,6 +83,10 @@ int main(int argc, char **argv)
 				}
 				break;
 
+			case 'D':
+				debug = !debug;
+				break;
+
 			case 'p':
 				if(optarg)
 				{
@@ -99,7 +103,7 @@ int main(int argc, char **argv)
 
 	loadcfg(&rc, cfgfile);
 
-	if(background)
+	if(background && !debug)
 	{
 		const char *port = value((const struct hash **)rc, "port");
 		unsigned short nport = port ? atoi(port) : 7000;
@@ -115,12 +119,52 @@ int main(int argc, char **argv)
 	else
 	{
 		signal(SIGINT, sig_exit);
-	}
 
-	atexit(safe_exit);
+		canon(0);
+
+		_INFO("Waiting...");
+	}
 
 	fm_run(&playlist);
 	
+	_INFO("Running...");
+
+	if(debug)
+	{
+		register int ch = 0;
+
+		while(1)
+		{
+			ch = getchar();
+
+			switch(ch)
+			{
+			case 's':
+				fm_skip();
+				break;
+
+			case 'n':
+				fm_next();
+				break;
+
+			case 'l':
+				fm_love();
+				break;
+
+			case 'u':
+				fm_unlove();
+				break;
+
+			case 'b':
+				fm_ban();
+				break;
+
+			case 'Q':
+				fm_stop();
+				exit(EXIT_SUCCESS);
+			}
+		}
+	}
 	handle(listenfd);
 }
 
@@ -162,16 +206,12 @@ static void daemonize(const char *log, const char *err)
 	stderr = freopen(err ? err : "/dev/null", "a+", stderr);
 }
 
-static void safe_exit()
+static void sig_exit(int signo)
 {
 	fm_stop();
 
-	/* save config */
-	mkcfg((const struct hash **)rc, CFG_FILE);
-}
+	mkcfg((const struct hash**)rc, CFG_FILE);
 
-static void sig_exit(int signo)
-{
 	fprintf(stderr, "press 'Q' to exit, %d\n", getpid());
 
 	exit(EXIT_SUCCESS);

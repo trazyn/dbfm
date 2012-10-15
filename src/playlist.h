@@ -34,8 +34,6 @@ struct playlist
 
 const struct hash **pl_current(struct playlist *pl);
 
-void pl_preview(struct playlist *pl); 
-
 void pl_destroy(struct playlist *pl);
 
 void pl_history(struct playlist *pl, enum cmd_type type, int sid);

@@ -11,26 +11,49 @@
 #define SCREEN_H
 
 #include <ncurses.h>
+#include <signal.h>
 
-typedef void (screen_t)(void *);
+#define SCREEN_UPDATE() 			raise(SIGWINCH), raise(SIGUSR1)
 
-void scr_setup();
-
-void scr_destroy();
-
+/* ++++ */
 void scr_track(void *args);
 
+void scr_trackprgs(int enable);
+/* ++++ */
+
+/* ==== */
 void scr_playlist(void *args);
 
+void scr_plscrl(int i);
+/* ==== */
+
+/* ---- */
 void scr_help(void *args);
 
-void scr_load(screen_t *screen, void *args);
+void scr_helpscrl(int i);
+/* ---- */
+
+struct progress
+{
+	int line;
+	int min;
+	int max;
+	int position;
+
+	char *done;
+	char *undone;
+
+	int attr;
+	int color;
+};
+
+void scr_start();
+
+void scr_end();
+
+void scr_progress(const struct progress *pgrs);
 
 void scr_putline(unsigned line, char *s, unsigned start, unsigned end, int attr, int color);
-
-void scr_scroll_help(int i);
-
-void scr_scroll_pl(int i);
 
 void handle_screen();
 

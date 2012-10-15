@@ -37,6 +37,8 @@ void handle(int listenfd)
 
 	if(0 == listenfd)
 	{
+		openlog(value((const struct hash **)rc, "log"), value((const struct hash **)rc, "err"));
+
 		handle_screen();
 	}
 	else

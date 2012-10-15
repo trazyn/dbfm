@@ -23,8 +23,6 @@
 
 static FILE *ropen(const char *host, unsigned short port, int timeout);
 
-static void fshutdown(FILE **fp);
-
 static char **read_response(FILE *fp);
 
 static char to_hex(char ch);
@@ -175,9 +173,10 @@ char **fetch(const char *url, FILE **handle, const char *post, const char *type)
 
 	if(200 != nstatus && 301 != nstatus && 302 != nstatus)
 	{
-		fshutdown(&fp);
-		_ERROR("%s\n", status);
-		_ERROR("error response status: %d\n", nstatus);
+		shutdown(fileno(fp), SHUT_RDWR);
+		fclose(fp);
+
+		_ERROR("error response status: %s\n", status);
 
 		return NULL;
 	}
@@ -339,9 +338,3 @@ static char from_hex(char ch)
 	return ch - 'a' + 10;
 }
 
-static void fshutdown(FILE **fp)
-{
-	shutdown(fileno(*fp), SHUT_RDWR);
-	fclose(*fp);
-	*fp = NULL;
-}

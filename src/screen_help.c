@@ -15,6 +15,8 @@
 #include <string.h>
 #include <signal.h>
 
+#define COLOR_SEPARATE 					COLOR_PAIR(1)
+
 static int position;
 
 static WINDOW *win;
@@ -44,8 +46,8 @@ void scr_help(void *args)
 {
 	signal(SIGWINCH, sig_resize);
 
-	scr_putline(2, "-", 4, COLS - 4, A_BOLD, 1);
-	scr_putline(LINES - 3, "-", 4, COLS - 4, A_BOLD, 1);
+	scr_putline(2, "-", 4, COLS - 4, A_BOLD, COLOR_SEPARATE);
+	scr_putline(LINES - 3, "-", 4, COLS - 4, A_BOLD, COLOR_SEPARATE);
 
 	if(NULL == win)
 	{
@@ -54,7 +56,7 @@ void scr_help(void *args)
 
 	wclear(win);
 
-	attron(A_BOLD);
+	attron(A_BOLD | A_STANDOUT);
 
 	for(int i = position, line = 1; i < ARRLEN(help);)
 	{
@@ -65,12 +67,12 @@ void scr_help(void *args)
 		++line;
 	}
 
-	attroff(A_BOLD);
+	attroff(A_BOLD | A_STANDOUT);
 
 	wrefresh(win);
 }
 
-void scr_scroll_help(int i)
+void scr_helpscrl(int i)
 {
 	int active = ARRLEN(help) - (LINES - 6) / 2;
 
@@ -97,7 +99,7 @@ static void sig_resize(int signo)
 
 	win = NULL;
 
-	scr_destroy();
+	scr_end();
 
-	scr_setup();
+	scr_start();
 }

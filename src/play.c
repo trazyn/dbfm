@@ -57,6 +57,7 @@ void play(const char *location)
 
 	if(NULL == data.fp)
 	{
+		_WARN("stream is null");
 		exit(EXIT_FAILURE);
 	}
 
@@ -66,8 +67,8 @@ void play(const char *location)
 
 	if(-1 == data.driver_id)
 	{
-		/*  */
-		exit(EXIT_FAILURE);
+		kill(getppid(), SIGKILL);
+		die("no driver has been found: %s", strerror(errno));
 	}
 
 	data.fmt.bits = 16;
@@ -78,8 +79,8 @@ void play(const char *location)
 
 	if(NULL == data.device)
 	{
-		/*  */
-		exit(EXIT_FAILURE);
+		kill(getppid(), SIGKILL);
+		die("unable to open device: %s", strerror(errno));
 	}
 
 	mad_decoder_init(&dec, &data, input, NULL, NULL, output, NULL, NULL);
@@ -126,17 +127,14 @@ static enum mad_flow input(void *data, struct mad_stream *stream)
 	{
 		if(-1 == nbyte)
 		{
-			_ERROR("timeout or occurred an error");
-
-			exit(EXIT_FAILURE);
+			_WARN("timeout or occurred an error");
+			exit(EXIT_SUCCESS);
 		}
 
 		return MAD_FLOW_STOP;
 	}
 
 	nbyte += remnbyte;
-
-	//fprintf(stderr, "nbyte: %d, remnbyte: %d\n", nbyte, remnbyte);
 
 	mad_stream_buffer(stream, buf, nbyte);
 
@@ -193,8 +191,8 @@ static enum mad_flow output(void *data, const struct mad_header *header, struct 
 
 		if(NULL == ptr->device)
 		{
-			_ERROR("unable to open device");
-			return MAD_FLOW_BREAK;
+			kill(getppid(), SIGKILL);
+			die("unable to open device: %s", strerror(errno));
 		}
 	}
 
