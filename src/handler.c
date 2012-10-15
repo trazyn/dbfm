@@ -12,6 +12,7 @@
 #include "util.h"
 #include "log.h"
 #include "fm.h"
+#include "screen.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,77 +24,23 @@
 #include <sys/socket.h>
 
 extern struct hash **station;
+
 extern struct hash **rc;
 
 static void handle_client(int fd);
-
-static void help();
 
 static void execmd(char *line, char *reply, int size);
 
 void handle(int listenfd)
 {
-	int ch = 0;
-	char channel[16] = { 0 };
+	int fd;
 
 	if(0 == listenfd)
 	{
-		echo(0);
-
-		/* register keyboard */
-		while(1)
-		{
-			ch = getchar();
-
-			switch(ch)
-			{
-				case 'n':
-					fm_next();
-					break;
-				case 's':
-					fm_skip();
-					break;
-				case 'l':
-					fm_love();
-					break;
-				case 'u':
-					fm_unlove();
-					break;
-				case 'b':
-					fm_ban();
-					break;
-				case 'd':
-					fm_download();
-					break;
-				case 'c':
-					prompt("please type channel ID: ", channel, 16, INPUT_TEXT);
-
-					if(NULL != value((const struct hash **)station, channel))
-					{
-						overwrite(&rc, "channel", channel);
-
-						fm_channel();
-					}
-
-					echo(0);
-					break;
-				case 'p':
-					fm_list();
-					break;
-				case 'Q':
-					exit(EXIT_SUCCESS);
-					break;
-				
-				default:
-					help();
-					break;
-			}
-		}
+		handle_screen();
 	}
 	else
 	{
-		int fd;
-
 		while(1)
 		{
 			if(-1 == (fd = accept(listenfd, NULL, 0)))
@@ -237,7 +184,7 @@ static void execmd(char *line, char *reply, int size)
 		case 5:
 			if(NULL != value((const struct hash **)station, arg))
 			{
-				overwrite(&rc, "channel", arg);
+				reset(&rc, "channel", arg);
 
 				fm_channel();
 			}
@@ -247,18 +194,5 @@ static void execmd(char *line, char *reply, int size)
 			exit(EXIT_SUCCESS);
 
 	}
-}
-
-static void help()
-{
-	fprintf(stderr, 
-	  	"\n"
-	  	"n - play next track \t\t s - skip track\n"
-	  	"l - love this track \t\t u - unlove track\n"
-	  	"b - baned this track\t\t d - download\n"
-	  	"p - printf playlist \t\t c - change channel\n"
-	  	"Q - exit            \t\t ? - help\n"
-		"\n"
-	  );
 }
 

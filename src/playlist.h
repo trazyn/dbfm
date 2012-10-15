@@ -29,6 +29,7 @@ struct playlist
 	struct hash **history;
 
 	int position;
+	int length;
 };
 
 const struct hash **pl_current(struct playlist *pl);

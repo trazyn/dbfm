@@ -62,10 +62,10 @@ void prompt(const char *text, char *save, int size, enum input_type type)
 
 	if(INPUT_PASSWORD == type)
 	{
-		echo(0);
+		canon(0);
 	}
 	else
-		echo(1);
+		canon(1);
 
 	register int ch = 0, n = 0;
 
@@ -83,10 +83,10 @@ void prompt(const char *text, char *save, int size, enum input_type type)
 
 	*(save + n) = 0;
 
-	echo(1);
+	canon(1);
 }
 
-void echo(int enable)
+void canon(int enable)
 {
 	struct termios term;
 
@@ -117,12 +117,10 @@ static inline void *loop(void *data)
 	return NULL;
 }
 
-char *meta(const struct hash **track, const char *fmt, char *buf)
+char *trackinfo(const struct hash **track, const char *fmt, char *buf, int size)
 {
 	char *ptr = (char *)fmt;
-	int remsize = BUFSIZ;
-
-	memset(buf, 0, BUFSIZ);
+	int remsize = size;
 
 	register char ch = 0;
 
@@ -161,8 +159,8 @@ char *meta(const struct hash **track, const char *fmt, char *buf)
 					break;
 
 				default:
-					buf[BUFSIZ - remsize--] = ch;
-					buf[BUFSIZ - remsize] = *ptr;
+					buf[size - remsize--] = ch;
+					buf[size - remsize] = *ptr;
 					continue;
 			}
 
@@ -187,11 +185,12 @@ char *meta(const struct hash **track, const char *fmt, char *buf)
 			}
 		}
 
-		buf[BUFSIZ - remsize--] = ch;
-		buf[BUFSIZ - remsize] = 0;
+		buf[size - remsize--] = ch;
 
 		++ptr;
 	}
+
+	buf[size - remsize] = 0;
 
 	return buf;
 }

@@ -21,9 +21,9 @@ void set(struct hash ***arr, const char *key, const char *value);
 
 const char *value(const struct hash **hash, const char *key);
 
-void erase(struct hash ***arr, const char *key);
+void delete(struct hash ***arr, const char *key);
 
-void overwrite(struct hash ***arr, const char *key, const char *value);
+void reset(struct hash ***arr, const char *key, const char *value);
 
 void cleanup(struct hash **ptr);
 

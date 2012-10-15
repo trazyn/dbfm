@@ -30,6 +30,12 @@ const struct hash **pl_current(struct playlist *pl)
 {
 	const struct hash **track = NULL;
 
+	if(pl->position < 0 || pl->position > pl->length)
+	{
+		pl_load(pl);
+		return pl_current(pl);
+	}
+
 	if(pl->position >= 0)
 	{
 		register int idx = 0;
@@ -51,11 +57,6 @@ const struct hash **pl_current(struct playlist *pl)
 
 			return pl_current(pl);
 		}
-	}
-	else
-	{
-		pl_load(pl);
-		return pl_current(pl);
 	}
 
 	return track;
@@ -135,8 +136,6 @@ void pl_destroy(struct playlist *pl)
 
 		pl->list = NULL;
 	}
-
-	pl->position = 0;
 }
 
 void pl_history(struct playlist *pl, enum cmd_type type, int sid)
@@ -155,7 +154,7 @@ void pl_history(struct playlist *pl, enum cmd_type type, int sid)
 
 	if(history && idx >= max)
 	{
-		erase(history, (**history)->key);
+		delete(history, (**history)->key);
 	}
 
 	set(history, key, value);
@@ -218,6 +217,9 @@ static void pl_load(struct playlist *pl)
 	}
 
 	array_list *tracks = json_object_get_array(json_object_object_get(obj, "song"));
+
+	pl->position = 0;
+	pl->length = tracks->length;
 
 	struct tracknode *ptr = NULL, *last = NULL;
 

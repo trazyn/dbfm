@@ -16,11 +16,6 @@
 
 int msg_out[] =
 {
-    	/* 
-     	* message out just stdout and stderror 
-     	* 1: stdout
-     	* 2: stderr
-     	* */
     	#define XX(NAME, VALUE, FP, PRE_MSG, COLOR)             (FP & 1) + 1,
     	MSG_MAP(XX)
     	#undef XX
@@ -63,6 +58,8 @@ void prmsg(enum msg_types msg_type, const char *format, ...)
 	vsnprintf(buf, sizeof buf, format, argv);
 	va_end(argv);
 
+	return;
+
 	___MSG(     msg_out[msg_type] == 2 ? stderr : stdout, 
 	  			msg_prefix[msg_type],
 	  			buf, 
@@ -82,10 +79,10 @@ void die(const char *format, ...)
 	va_end(argv);
 
 	___MSG(     		stderr, 
-	  			msg_prefix[MSG_ERROR],
-	  			buf, 
-	  			msg_color[MSG_ERROR], 
-	  			"");
+				  msg_prefix[MSG_ERROR],
+				  buf, 
+				  msg_color[MSG_ERROR], 
+				  "");
 
 	exit(EXIT_FAILURE);
 }

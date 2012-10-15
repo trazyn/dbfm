@@ -25,41 +25,40 @@
 #include <signal.h>
 
 #define PID_FILE 						"/tmp/dbfm.pid"
-	
-struct hash **rc;
-struct hash **token;
-struct hash **station;
 
 static void safe_exit();
 
-static struct user user = { .session = &token, .email = { 0 }, .password = { 0 } };
-
 static void usage();
 
-static int pid_save();
-
-static void pid_clean();
-
-static void daemonize(const char *file_log, const char *file_err);
+static void daemonize(const char *log, const char *err);
 
 static void sig_exit(int signo);
+
+struct hash **rc;
+
+struct hash **token;
+
+struct hash **station;
+
+const char short_options[] = "hde:p:";
+
+const struct option long_options[] = 
+{
+	{"help", 	no_argument, 		NULL, 'h'},
+	{"email", 	required_argument, 	NULL, 'e'},
+	{"password", 	required_argument, 	NULL, 'p'},
+	{"daemon", 	no_argument, 		NULL, 'd'},
+	{NULL, 		0, 			NULL, 	0}
+};
+
+static struct user user = { .session = &token, .email = { 0 }, .password = { 0 } };
 
 int main(int argc, char **argv)
 {
 	int background = 0, listenfd = 0;
 	char cfgfile[FILENAME_MAX];
 
-	struct playlist playlist = { .list = NULL, .position = 0,  .history = NULL };
-
-	const char short_options[] = "hde:p:";
-	const struct option long_options[] = 
-	{
-		{"help", 	no_argument, 		NULL, 'h'},
-		{"email", 	required_argument, 	NULL, 'e'},
-		{"password", 	required_argument, 	NULL, 'p'},
-		{"daemon", 	no_argument, 		NULL, 'd'},
-		{NULL, 		0, 			NULL, 	0}
-	};
+	struct playlist playlist = { .list = NULL, .position = 0, .length = 0, .history = NULL };
 
 	opterr = 0;
 
@@ -72,15 +71,18 @@ int main(int argc, char **argv)
 			case 'h':
 				usage();
 				break;
+
 			case 'd':
 				background = !background;
 				break;
+
 			case 'e':
 				if(optarg)
 				{
 					strncpy(user.email, optarg, 32);
 				}
 				break;
+
 			case 'p':
 				if(optarg)
 				{
@@ -90,15 +92,11 @@ int main(int argc, char **argv)
 		}
 	}
 
-	if(-1 == pid_save())
-	{
-		die("dbfm already running...");
-	}
-
 	session(&user);
 	channels(&station);
 	
 	snprintf(cfgfile, FILENAME_MAX, "%s/%s/%s", getenv("XDG_CONFIG_HOME"), CFG_PATH, CFG_FILE);
+
 	loadcfg(&rc, cfgfile);
 
 	if(background)
@@ -136,6 +134,8 @@ static void usage()
 	  	"-h, --help,     printf help\n"
 	  	"\n"
 	  );
+
+	exit(EXIT_SUCCESS);
 }
 
 static void daemonize(const char *log, const char *err)
@@ -156,8 +156,8 @@ static void daemonize(const char *log, const char *err)
 
 	chdir("/");
 
-	close(STDIN_FILENO);
-
+	close(STDIN_FILENO);	
+	
 	stdout = freopen(log ? log : "/dev/null", "a+", stdout);
 	stderr = freopen(err ? err : "/dev/null", "a+", stderr);
 }
@@ -168,31 +168,6 @@ static void safe_exit()
 
 	/* save config */
 	mkcfg((const struct hash **)rc, CFG_FILE);
-}
-
-static int pid_save()
-{
-	if(0 == access(PID_FILE, F_OK))
-	{
-		return -1;
-	}
-
-	FILE *fp = fopen(PID_FILE, "w+");
-
-	chmod(PID_FILE, 0700);
-
-	fprintf(fp, "%d\n", getpid());
-
-	fclose(fp);
-
-	atexit(pid_clean);
-
-	return 0;
-}
-
-static void pid_clean()
-{
-	unlink(PID_FILE);
 }
 
 static void sig_exit(int signo)

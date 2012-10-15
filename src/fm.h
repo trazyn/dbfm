@@ -36,4 +36,8 @@ void fm_channel();
 
 void fm_stop();
 
+const struct playlist *fm_playlist();
+
+const struct hash **fm_track();
+
 #endif

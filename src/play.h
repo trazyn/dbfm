@@ -22,7 +22,6 @@ struct stream
 	ao_sample_format fmt;
 };
 
-
-void play(const char *url, const char *driver);
+void play(const char *location);
 
 #endif

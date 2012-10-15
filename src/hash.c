@@ -95,7 +95,7 @@ int length(const struct hash **arr)
 	return nitem;
 }
 
-void erase(struct hash ***arr, const char *key)
+void delete(struct hash ***arr, const char *key)
 {
 	register int idx = 0;
 	struct hash *item = NULL, **ptr = *arr;
@@ -127,9 +127,9 @@ void erase(struct hash ***arr, const char *key)
 	}
 }
 
-void overwrite(struct hash ***arr, const char *key, const char *value)
+void reset(struct hash ***arr, const char *key, const char *value)
 {
-	erase(arr, key);
+	delete(arr, key);
 
 	set(arr, key, value);
 }

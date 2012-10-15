@@ -14,6 +14,7 @@
 #define END_WITH(str, s) 			  	( strncmp((str) + strlen((str)) - strlen((s)), (s), strlen((s))) == 0 )
 #define EQUAL(str, s) 					( BEGIN_WITH((str), (s)) && strlen((str)) == strlen((s)) )
 #define MAX(x, y) 					( (x) > (y) )
+#define ARRLEN(arr) 					sizeof (arr) / sizeof *(arr)
 
 #include "hash.h"
 
@@ -28,9 +29,9 @@ void duration(void *data, void (*func)(void *), int nsec);
 
 void prompt(const char *text, char *save, int size, enum input_type type);
 
-void echo(int enable);
+void canon(int enable);
 
-char *meta(const struct hash **track, const char *fmt, char *buf);
+char *trackinfo(const struct hash **track, const char *fmt, char *buf, int size);
 
 int arridx(const char **arr, char *value);
 

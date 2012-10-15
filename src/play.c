@@ -8,6 +8,7 @@
  */
 
 #include "play.h"
+#include "hash.h"
 #include "http.h"
 #include "log.h"
 
@@ -28,23 +29,26 @@
 * format.
 */
 
+extern struct hash **rc;
+
 static inline signed scale(register mad_fixed_t sample);
 
 static enum mad_flow input(void *data, struct mad_stream *stream);
 
 static enum mad_flow output(void *data, const struct mad_header *header, struct mad_pcm *pcm);
 
-void play(const char *location, const char *driver)
+void play(const char *location)
 {
 	struct stream data;
 	struct mad_decoder dec;
+
+	const char *driver = value((const struct hash **)rc, "driver");
 
 	memset(&data, 0, sizeof data);
 
 	if(START_WITH(location, "http://"))
 	{
 		fetch(location, &data.fp, NULL, NULL);
-
 	}
 	else
 	{
@@ -53,7 +57,7 @@ void play(const char *location, const char *driver)
 
 	if(NULL == data.fp)
 	{
-		raise(SIGUSR1);
+		exit(EXIT_FAILURE);
 	}
 
 	ao_initialize();
@@ -62,7 +66,8 @@ void play(const char *location, const char *driver)
 
 	if(-1 == data.driver_id)
 	{
-		die("unable to find any usable output device");
+		/*  */
+		exit(EXIT_FAILURE);
 	}
 
 	data.fmt.bits = 16;
@@ -73,7 +78,8 @@ void play(const char *location, const char *driver)
 
 	if(NULL == data.device)
 	{
-		die("unable to open device: %s", strerror(errno));
+		/*  */
+		exit(EXIT_FAILURE);
 	}
 
 	mad_decoder_init(&dec, &data, input, NULL, NULL, output, NULL, NULL);
@@ -122,7 +128,7 @@ static enum mad_flow input(void *data, struct mad_stream *stream)
 		{
 			_ERROR("timeout or occurred an error");
 
-			raise(SIGUSR1);
+			exit(EXIT_FAILURE);
 		}
 
 		return MAD_FLOW_STOP;

@@ -24,19 +24,18 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <signal.h>
-#include <pthread.h>
 #include <sys/wait.h>
+#include <pthread.h>
 
 extern struct hash **rc;
 
 static struct playlist *list;
 
-static char ack = CMD_NEXT;
-
-/* current track */
 static struct hash **current;
 
 static pid_t playproc = 0;
+
+static char ack = CMD_NEXT;
 
 #define SID 						atoi(value((const struct hash **)current, "sid"))
 #define URL 						value((const struct hash **)current, "url")
@@ -44,25 +43,45 @@ static pid_t playproc = 0;
 #define TITLE 						value((const struct hash **)current, "title")
 #define ARTIST 						value((const struct hash **)current, "artist")
 
-static void sig_waitplay(int signo);
-
 static void *dl_thread(void *data);
 
 void fm_run(struct playlist *pl)
 {
-	char text[BUFSIZ] = { 0 };
-
-	list = pl;
-	current = (struct hash **)pl_current(pl);
-
-	signal(SIGCHLD, sig_waitplay);
+	int status;
 
 	/* make sure only one instance of play process */
-	if(playproc)
+	if(playproc > 0)
 	{
-		kill(playproc, SIGKILL);
-		waitpid(playproc, NULL, 0);
+		signal(SIGCHLD, SIG_DFL);
+
+		kill(playproc, SIGUSR1);
+
+		while(playproc != waitpid(playproc, &status, 0))
+		{
+			if(ESRCH == errno || ECHILD == errno)
+			{
+				break;
+			}
+
+			exit(EXIT_FAILURE);
+		}
+
+		if(WIFEXITED(status) && EXIT_SUCCESS == WEXITSTATUS(status))
+		{
+			pl_history(list, ack, SID);
+
+			ack = CMD_NEXT;
+
+			fm_recording();
+		}
+		else
+		{
+			pl_history(list, CMD_SKIP, SID);
+		}
 	}
+
+	list = pl;
+	current = (struct hash **)pl_current(list);
 
 	switch((playproc = fork()))
 	{
@@ -71,26 +90,29 @@ void fm_run(struct playlist *pl)
 
 		case 0:
 			signal(SIGINT, SIG_IGN);
+			signal(SIGUSR1, SIG_DFL);
 
-			fprintf(stderr, meta((const struct hash **)current, "\nPLAYING: [%a - %t]\n", text));
+			close(STDIN_FILENO);
 
-			play(URL, value((const struct hash **)rc, "driver"));
+			play(URL);
+
 			exit(EXIT_SUCCESS);
-
 		default:
 			break;
 	}
+
+	signal(SIGCHLD, fm_next);
 }
 
 void fm_next()
 {
-	kill(playproc, SIGUSR1);
+	list->position++;
+
+	fm_run(list);
 }
 
 void fm_skip()
 {
-	pl_history(list, CMD_SKIP, SID);
-
 	list->position = -1;
 
 	fm_run(list);
@@ -111,8 +133,7 @@ int fm_love(struct playlist *pl)
 			return -1;
 		}
 
-		erase(&current, "like");
-		set(&current, "like", "1");
+		reset(&current, "like", "1");
 
 		free_response(resp);
 	}
@@ -135,8 +156,7 @@ int fm_unlove()
 			return -1;
 		}
 
-		erase(&current, "like");
-		set(&current, "like", "0");
+		reset(&current, "like", "0");
 
 		free_response(resp);
 	}
@@ -148,7 +168,6 @@ void fm_ban()
 {
 	pl_history(list, CMD_BAN, SID);
 
-	/* force refresh playlist */
 	list->position = -1;
 
 	fm_run(list);
@@ -166,6 +185,7 @@ int fm_recording()
 	if(!EQUAL(*resp, "ok"))
 	{
 		free_response(resp);
+
 		return -1;
 	}
 
@@ -228,7 +248,6 @@ static void *dl_thread(void *data)
 
 void fm_stop()
 {
-	/* remove signal handle */
 	signal(SIGCHLD, SIG_DFL);
 
 	if(playproc)
@@ -252,36 +271,17 @@ void fm_list()
 
 void fm_channel()
 {
-	fm_skip();
+	list->position = -1;
+
+	fm_run(list);
 }
 
-static void sig_waitplay(int signo)
+const struct playlist *fm_playlist()
 {
-	int status;
+	return list;
+}
 
-	waitpid(playproc, &status, 0);
-
-	playproc = 0;
-
-	if((WIFEXITED(status) && EXIT_SUCCESS == WEXITSTATUS(status))
-	  		|| (WIFSIGNALED(status) && SIGUSR1 == WTERMSIG(status)))
-	{
-		list->position++;
-		
-		if(WIFEXITED(status) && EXIT_SUCCESS == WEXITSTATUS(status))
-		{
-			/* if play process is normal termination, append history */
-			pl_history(list, ack, SID);
-
-			fm_recording();
-
-			ack = CMD_NEXT;
-		}
-
-		fm_run(list);
-	}
-	else if(WIFEXITED(status) && EXIT_FAILURE == WEXITSTATUS(status))
-	{
-		exit(EXIT_FAILURE);
-	}
+const struct hash **fm_track()
+{
+	return (const struct hash **)current;
 }

@@ -9,6 +9,7 @@ LDLIBS 			+= -lmad
 LDLIBS 			+= -lao
 LDLIBS 			+= -ljson
 LDLIBS 			+= -lpthread
+LDLIBS 			+= -lncurses
 
 MAIN 			:= ./src/main.c
 TEST 			:= ./test.c
