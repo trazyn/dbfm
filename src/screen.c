@@ -94,6 +94,8 @@ void handle_screen()
 {
 	scr_start();
 
+	atexit(scr_end);
+
 	while(1)
 	{
 		register int ch = getch();
@@ -101,8 +103,6 @@ void handle_screen()
 		switch(ch)
 		{
 			case 'Q':
-				scr_end();
-
 				exit(EXIT_SUCCESS);
 
 			case 'j':
@@ -151,6 +151,10 @@ void handle_screen()
 				{
 					scr_load(scr_track, NULL);
 				}
+				break;
+				
+			case 'd':
+				fm_download();
 				break;
 
 			case 'u':
