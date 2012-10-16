@@ -27,7 +27,7 @@ void scr_start()
 
 	initscr();
 
-	cbreak();
+	raw();
 
 	noecho();
 
@@ -55,9 +55,9 @@ void scr_start()
 
 void scr_end()
 {
-	clear();
-
 	endwin();
+
+	clear();
 }
 
 void scr_putline(unsigned line, char *s, unsigned start, unsigned end, int attr, int color)
@@ -101,9 +101,7 @@ void handle_screen()
 		switch(ch)
 		{
 			case 'Q':
-				clear();
 				scr_end();
-				fm_stop();
 
 				exit(EXIT_SUCCESS);
 

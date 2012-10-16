@@ -63,6 +63,13 @@ login:
 
 		resp = fetch(SESSION_API, NULL, post, NULL);
 
+		if(NULL == resp)
+		{
+			_ERROR("failed to get session");
+
+			return;
+		}
+
 		obj = json_tokener_parse(*resp);
 
 		free_response(resp);

@@ -25,13 +25,13 @@
 #include <sys/stat.h>
 #include <signal.h>
 
-#define PID_FILE 						"/tmp/dbfm.pid"
-
 static void usage();
 
 static void daemonize(const char *log, const char *err);
 
 static void sig_exit(int signo);
+
+static void safe_exit();
 
 struct hash **rc;
 
@@ -129,6 +129,8 @@ int main(int argc, char **argv)
 	
 	_INFO("Running...");
 
+	atexit(safe_exit);
+
 	if(debug)
 	{
 		register int ch = 0;
@@ -160,7 +162,6 @@ int main(int argc, char **argv)
 				break;
 
 			case 'Q':
-				fm_stop();
 				exit(EXIT_SUCCESS);
 			}
 		}
@@ -208,11 +209,16 @@ static void daemonize(const char *log, const char *err)
 
 static void sig_exit(int signo)
 {
+	fprintf(stderr, "press 'Q' to exit, %d\n", getpid());
+
+	exit(EXIT_SUCCESS);
+}
+
+static void safe_exit()
+{
 	fm_stop();
 
 	mkcfg((const struct hash**)rc, CFG_FILE);
-
-	fprintf(stderr, "press 'Q' to exit, %d\n", getpid());
 
 	exit(EXIT_SUCCESS);
 }

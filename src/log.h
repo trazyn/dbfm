@@ -77,6 +77,8 @@ void die(const char *format, ...);
 
 #ifdef ___DEBUG
 #define _DEBUG(...)                                     	prmsg(MSG_DEBUG, AT __VA_ARGS__)
+#else
+#define _DEBUG(...) 						
 #endif
 
 #endif

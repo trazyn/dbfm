@@ -155,6 +155,11 @@ static void pl_load(struct playlist *pl)
 	
 	resp = api_send_request(type, sid, hist);
 
+	if(NULL == resp)
+	{
+		die("failed to get playlist");
+	}
+
 	if(CMD_INITPL != type)
 	{
 		pl_destroy(pl);
@@ -164,7 +169,7 @@ static void pl_load(struct playlist *pl)
 
 	if(json_object_get_int(json_object_object_get(obj, "r")))
 	{
-		die("failed to get playlist");
+		die("API error");
 	}
 
 	array_list *tracks = json_object_get_array(json_object_object_get(obj, "song"));

@@ -7,6 +7,8 @@
  * tn.razy@gmail.com
  */
 
+//#define ___DEBUG
+
 #include "http.h"
 #include "log.h"
 
@@ -56,7 +58,15 @@ static FILE *ropen(const char *host, unsigned short port, int timeout)
 
 	fcntl(fd, F_SETFL, O_NONBLOCK);
 
-	connect(fd, (struct sockaddr *)&server, sizeof(struct sockaddr));
+	while(connect(fd, (struct sockaddr *)&server, sizeof(struct sockaddr)) < 0)
+	{
+		if(EINTR == errno)
+		{
+			continue;
+		}
+
+		break;
+	}
 
 	struct timeval tv, *tvp;
 	fd_set fdset;
@@ -112,8 +122,6 @@ static char **read_response(FILE *fp)
 
 			resp[nline++] = line;
 			resp[nline] = NULL;
-
-			//printf("line: %s\n", line);
 		}
 		else
 			free(line);
@@ -128,6 +136,8 @@ char **fetch(const char *url, FILE **handle, const char *post, const char *type)
 	unsigned short nport = 80, nstatus = 0;
 	size_t size = 0;
 	FILE *fp;
+
+	_DEBUG("URL: %s", url);
 
 	strncpy(urlcpy, url, sizeof urlcpy);
 
@@ -197,9 +207,11 @@ char **fetch(const char *url, FILE **handle, const char *post, const char *type)
 
 	if(handle)
 	{
+		_DEBUG("URL: %s", NULL == fp ? "ERR" : "OK");
 		*handle = fp;
 		return NULL;
 	}
+	_DEBUG("URL: %s", NULL == fp ? "ERR" : "OK");
 
 	return read_response(fp);
 }
