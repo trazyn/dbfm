@@ -1,6 +1,17 @@
+A simple client for www.douban.com
 
-Config(dbfm.conf)
-======
+Github: www.github.com/tnrazy/dbfm
+
+------------------------------------------------------------------------
+
+![preview](https://github.com/tnrazy/dbfm/blob/master/preview.png)
+
+------------------------------------------------------------------------
+
+Copy conf/* to $XDG_CONFIG_HOME/dbfm
+
+Config
+
 	# Alsa driver short name "alsa" or "pulse"(make sure pulseaudio has installed)
 	driver=pulse
 
@@ -15,37 +26,4 @@ Config(dbfm.conf)
 
 	# Download directory
 	download=/media/Music/download
-
-------------------------------------------------------------------------
-
-	A simple client for www.douban.com
-
-	Github: www.github.com/tnrazy/dbfm
-
-
-	Key map:
-		
-		n - Play next track
-
-		s - Skip playlist
-
-		l - Mark track as loved
-
-		u - Unlove
-
-		b - Banned current track
-
-		d - Download current track (IDV3 tag undone)
-
-		p - Print playlist
-
-		i - Track info
-
-		c - Change channel (Channel list undone, just for telnet)
-
-		Q - Exit
-
-		? - Print help
-
-------------------------------------------------------------------------
 
