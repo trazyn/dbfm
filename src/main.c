@@ -113,6 +113,8 @@ int main(int argc, char **argv)
 			exit(EXIT_FAILURE);
 		}
 
+		signal(SIGUSR1, SIG_IGN);
+
 		/* run as daemon */
 		daemonize(value((const struct hash **)rc, "log"), value((const struct hash **)rc, "err"));
 	}

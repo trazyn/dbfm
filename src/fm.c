@@ -125,6 +125,8 @@ void fm_skip()
 	list->position = -1;
 
 	fm_run(list);
+
+	SCREEN_UPDATE();
 }
 
 int fm_love(struct playlist *pl)
