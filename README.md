@@ -4,7 +4,7 @@ Github: www.github.com/tnrazy/dbfm
 
 ------------------------------------------------------------------------
 
-![preview](https://github.com/tnrazy/dbfm/blob/master/preview.png)
+![preview](https://raw.github.com/tnrazy/dbfm/master/preview.png)
 
 ------------------------------------------------------------------------
 
