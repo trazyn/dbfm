@@ -1,4 +1,4 @@
-A simple client for www.douban.com
+A simple client for www.douban.fm
 
 Github: www.github.com/tnrazy/dbfm
 
