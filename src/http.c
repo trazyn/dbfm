@@ -115,8 +115,9 @@ static char **read_response(FILE *fp)
 	{
 		line = NULL;
 		size = 0;
+		errno = 0;
 
-		if(getline(&line, &size, fp))
+		if(getline(&line, &size, fp) > 0)
 		{
 			resp = realloc(resp, (nline + 2) * sizeof *resp);
 
@@ -124,7 +125,14 @@ static char **read_response(FILE *fp)
 			resp[nline] = NULL;
 		}
 		else
+		{
 			free(line);
+
+			if(EINTR == errno)
+			{
+				continue;
+			}
+		}
 	}
 
 	return resp;
@@ -178,7 +186,6 @@ char **fetch(const char *url, FILE **handle, const char *post, const char *type)
 	{
 		sscanf(status, "HTTP/%*f %u", (unsigned int *)&nstatus);
 	}
-
 	free(status);
 
 	if(200 != nstatus && 301 != nstatus && 302 != nstatus)
@@ -196,9 +203,15 @@ char **fetch(const char *url, FILE **handle, const char *post, const char *type)
 	{
 		line = NULL;
 		size = 0;
+		errno = 0;
 
 		if(getline(&line, &size, fp) < 3)
 		{
+			if(EINTR == errno)
+			{
+				continue;
+			}
+
 			break;
 		}
 	}
