@@ -45,6 +45,7 @@ void handle(int listenfd)
 	{
 		while(1)
 		{
+			/* single mode */
 			if(-1 == (fd = accept(listenfd, NULL, 0)))
 			{
 				_ERROR("failed to accept client: %s", strerror(errno));

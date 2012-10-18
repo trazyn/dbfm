@@ -135,6 +135,8 @@ int main(int argc, char **argv)
 
 	if(debug)
 	{
+		signal(SIGUSR1, SIG_IGN);
+
 		register int ch = 0;
 
 		while(1)
@@ -220,7 +222,10 @@ static void safe_exit()
 {
 	fm_stop();
 
-	mkcfg((const struct hash**)rc, CFG_FILE);
+	if(NULL != rc)
+	{
+		mkcfg((const struct hash**)rc, CFG_FILE);
+	}
 
 	exit(EXIT_SUCCESS);
 }
