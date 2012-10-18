@@ -26,4 +26,41 @@ Config
 
 	# Download directory
 	download=/media/Music/download
+	
+	port=7000
 
+Key map:
+#
+	k - Move curosr up
+	j - Move curosr down
+
+
+	n - Play next track
+	s - Skip playlist
+	l - Mark track as loved
+	u - Unlove
+	b - Banned current track
+	d - Download current track(ID3V2 tag undone)
+	p - Print playlist
+	i - Track info
+	Q - Exit
+	? - Print help
+#
+
+Run DBFM as daemon
+#
+	$ dbfm -d
+	
+	telnet localhost 7000
+#
+
+Commands:(response undone)
+#
+	next		: Play next
+	skip 		: ...
+	love 		: ...
+	unlove 		: ...
+	ban		: ...
+	channel x 	: Change channel
+	kill 		: Exit dbfm
+#
