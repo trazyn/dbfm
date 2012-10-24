@@ -39,22 +39,22 @@ struct hash **token;
 
 struct hash **station;
 
-const char short_options[] = "hndDe:p:";
-
-const struct option long_options[] = 
-{
-	{"help", 	no_argument, 		NULL, 'h'},
-	{"email", 	required_argument, 	NULL, 'e'},
-	{"password", 	required_argument, 	NULL, 'p'},
-	{"daemon", 	no_argument, 		NULL, 'd'},
-	{"debug", 	no_argument, 		NULL, 'D'},
-	{NULL, 		0, 			NULL, 	0}
-};
-
 static struct user user = { .session = &token, .email = { 0 }, .password = { 0 } };
 
 int main(int argc, char **argv)
 {
+	const char short_options[] = "hndDe:p:";
+
+	const struct option long_options[] = 
+	{
+		{"help", 	no_argument, 		NULL, 'h'},
+		{"email", 	required_argument, 	NULL, 'e'},
+		{"password", 	required_argument, 	NULL, 'p'},
+		{"daemon", 	no_argument, 		NULL, 'd'},
+		{"debug", 	no_argument, 		NULL, 'D'},
+		{NULL, 		0, 			NULL, 	0}
+	};
+
 	int background = 0, debug = 0, listenfd = 0;
 	char cfgfile[FILENAME_MAX];
 
