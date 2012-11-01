@@ -97,7 +97,7 @@ int main(int argc, char **argv)
 	}
 
 	session(&user);
-	channels(&station);
+	//channels(&station);
 	
 	snprintf(cfgfile, FILENAME_MAX, "%s/%s/%s", getenv("XDG_CONFIG_HOME"), CFG_PATH, CFG_FILE);
 

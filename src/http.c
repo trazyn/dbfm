@@ -7,7 +7,7 @@
  * tn.razy@gmail.com
  */
 
-//#define ___DEBUG
+#define ___DEBUG
 
 #include "http.h"
 #include "log.h"
@@ -220,7 +220,6 @@ char **fetch(const char *url, FILE **handle, const char *post, const char *type)
 
 	if(handle)
 	{
-		_DEBUG("URL: %s", NULL == fp ? "ERR" : "OK");
 		*handle = fp;
 		return NULL;
 	}
