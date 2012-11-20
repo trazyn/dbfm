@@ -85,21 +85,24 @@ static FILE *ropen(const char *host, unsigned short port, int timeout)
 		tvp = &tv;
 	}
 
-	ret = select(fd + 1, &fdset, &fdset, &fdset, tvp);
+	while(ret = select(fd + 1, &fdset, &fdset, NULL, tvp), ret <= 0)
+	{
+		if(0 == ret)
+		{
+			_ERROR("connect to '%s' timeout", host);
+			return NULL;
+		}
+
+		if(EINTR == errno || EINPROGRESS == errno)
+		{
+			continue;
+		}
+
+		_ERROR("failed to connect '%s':'%s'", host, strerror(errno));
+		return NULL;
+	}
 
 	fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) & ~O_NONBLOCK);
-
-	if(0 == ret)
-	{
-		_ERROR("connect to '%s' timeout\n", host);
-		return NULL;
-	}
-
-	if(ret < 0 && EINPROGRESS != errno)
-	{
-		_ERROR("failed to connect '%s': %s", host, strerror(errno));
-		return NULL;
-	}
 
 	return fdopen(fd, "w+");
 }
