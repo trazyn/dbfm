@@ -138,13 +138,11 @@ void handle_screen()
 
 			case 'n':
 				fm_next();
-				SCREEN_UPDATE();
 				scr_load(scr_track, NULL);
 				break;
 
 			case 's':
 				fm_skip();
-				SCREEN_UPDATE();
 				scr_load(scr_track, NULL);
 				break;
 
