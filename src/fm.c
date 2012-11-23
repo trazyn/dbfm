@@ -16,7 +16,6 @@
 #include "log.h"
 #include "util.h"
 #include "http.h"
-#include "screen.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -116,8 +115,6 @@ void fm_next()
 	list->position++;
 
 	fm_run(list);
-
-	SCREEN_UPDATE();
 }
 
 void fm_skip()
@@ -125,8 +122,6 @@ void fm_skip()
 	list->position = -1;
 
 	fm_run(list);
-
-	SCREEN_UPDATE();
 }
 
 int fm_love(struct playlist *pl)
