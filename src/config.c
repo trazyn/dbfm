@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -24,7 +25,7 @@ void loadcfg(struct hash ***arr, const char *file)
 	FILE *fp;
 	unsigned nline;
 	size_t size;
-	char *line = NULL, key[16] = { 0 }, value[256] = { 0 };
+	char *line = NULL, *ptr, key[16] = { 0 }, value[256] = { 0 };
 
 	if(file && access(file, F_OK | R_OK) == -1)
 	{
@@ -52,8 +53,11 @@ void loadcfg(struct hash ***arr, const char *file)
 			continue;
 		}
 
+		ptr = line;
+		while(isspace(*ptr++));
+
 		/* skip comment line */
-		if('#' == *line)
+		if('#' == *--ptr)
 		{
 			if(size)
 			{
@@ -63,7 +67,7 @@ void loadcfg(struct hash ***arr, const char *file)
 			continue;
 		}
 		
-		int valid = sscanf(line, "%15[^=\t]=%63[^\r\n]", key, value);
+		int valid = sscanf(ptr, "%15[^= \t] = %63[^\r\n]", key, value);
 
 		if(2 != valid)
 		{
