@@ -1,5 +1,3 @@
-A simple client for www.douban.fm
-
 ------------------------------------------------------------------------
 
 ![preview](https://raw.github.com/tnrazy/dbfm/master/preview.png)
@@ -7,8 +5,8 @@ A simple client for www.douban.fm
 ------------------------------------------------------------------------
 
 #
-$ make 
-$ dbfm --help
+	$ make 
+	$ dbfm --help
 #
 
 Config:
