@@ -1,13 +1,13 @@
 
 VPATH 			+= src
 
-CC 			:= gcc
+#CC 			:= gcc
 
 CFLAGS 			:= -Wall -Werror -std=gnu99
 
 LDLIBS 			+= -lmad
 LDLIBS 			+= -lao
-LDLIBS 			+= -ljson
+LDLIBS 			+= -ljson-c
 LDLIBS 			+= -lpthread
 LDLIBS 			+= -lncurses
 
