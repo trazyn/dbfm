@@ -1,2 +1,2 @@
 
-# See https://github.com/fs3kuu/dbfm #
+Move to https://github.com/fs3kuu/dbfm
