@@ -1,134 +1,217 @@
 /*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * Licensed under the LGPL v2.1, see the file COPYING in base directory.
  *
- * tn.razy@gmail.com
+ * Copyright (C) 2013 <tn.razy@gmail.com>
+ *
  */
 
-#include "config.h"
-#include "log.h"
+#define _GNU_SOURCE
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
 #include <unistd.h>
-#include <fcntl.h>
+#include <string.h>
+#include <errno.h>
+#include <ctype.h>
 #include <sys/stat.h>
+#include <linux/limits.h> 			/** For PATH_MAX */
 
-extern struct hash **rc;
+#include "log.h"
+#include "config.h"
+#include "util.h"
 
-void loadcfg(struct hash ***arr, const char *file)
+int loadrc ( struct hash *** const rc, const char *filename )
 {
 	FILE *fp;
-	unsigned nline;
-	size_t size;
-	char *line = NULL, *ptr, key[16] = { 0 }, value[256] = { 0 };
+	char fullname[FILENAME_MAX] = { 0 };
 
-	if(file && access(file, F_OK | R_OK) == -1)
+	/** Failed to build rc path */
+	if ( NULL == rcpath () )
 	{
-		die("failed load config file '%s'", file);
+		exit ( EXIT_FAILURE );
 	}
 
-	fp = fopen(file, "r");
+	snprintf ( fullname, FILENAME_MAX, "%s/%s", rcpath (), filename );
 
-	nline = 0;
+	fp = fopen ( fullname, "r" );
 
-	while(!feof(fp))
+	if ( NULL == fp )
+	{
+		error ( "Failed to open file '%s': %s", fullname );
+		return -1;
+	}
+
+	/** Parse the configuration file */
+	size_t size = 0;
+	char *line = NULL, *ptr, key[16] = { 0 }, value[256] = { 0 };
+
+	register unsigned nline = 0;
+
+	while ( !feof ( fp ) )
 	{
 		++nline;
 
-		line = NULL;
-		size = 0;
-
-		if(getline(&line, &size, fp) < 4)
+		/** Too short */
+		if ( getline ( &line, &size, fp ) < 4 )
 		{
-			if(size)
-			{
-				free(line);
-			}
-
-			continue;
+			goto ignore;
 		}
 
+		/** For free */
 		ptr = line;
-		while(isspace(*ptr++));
 
-		/* skip comment line */
-		if('#' == *--ptr)
+		/** Trim the blank */
+		while ( isspace ( *ptr++ ) );
+
+		/** Skip comment line */
+		if ( '#' == *--ptr )
 		{
-			if(size)
-			{
-				free(line);
-			}
-
-			continue;
-		}
-		
-		int valid = sscanf(ptr, "%15[^= \t] = %63[^\r\n]", key, value);
-
-		if(2 != valid)
-		{
-			die("invalid config line:%d, %s", nline, line);
+			goto ignore;
 		}
 
-		set(arr, key, value);
+		/** Parse key value */
+		if ( 2 != sscanf ( ptr, "%15[^= \t] = %255[^\r\n]", key, value ) )
+		{
+			warn ( "Skip invalid line: %d, %s", nline, line );
+			goto ignore;
+		}
 
-		free(line);
+		/** Store the key value */
+		set ( rc, key, value );
+
+ignore:
+		if ( size ) 
+		{
+			free ( line );
+
+			size = 0;
+			line = NULL;
+		}
 	}
 
-	fclose(fp);
+	info ( "Load rc(%s) success!", fullname );
+
+	return 0;
 }
 
-void mkcfg(const struct hash **arr, const char *filename)
+int mkrc ( const struct hash ** rc, const char *filename )
 {
-	char cfgfile[FILENAME_MAX], tmpfile[FILENAME_MAX], *ptr = tmpfile;
-	struct stat st;
+	char fullname[FILENAME_MAX] = { 0 }, *s, *p;
 
-	snprintf(cfgfile, FILENAME_MAX, "%s/%s", getenv("XDG_CONFIG_HOME"), CFG_PATH);
-	
-	if(stat(cfgfile, &st) < 0 || !S_ISDIR(st.st_mode))
+	snprintf ( fullname, FILENAME_MAX, "%s", rcpath () );
+
+	s = strdupa ( filename );
+
+	while ( p = strchr ( s, '/' ), p )
 	{
-		mkdir(cfgfile, 0755);
-	}
-
-	/* enter to config dir */
-	chdir(cfgfile);
-	
-	if('/' != *filename && '\\' != *filename)
-	{
-		
-		strncpy(tmpfile, filename, FILENAME_MAX);
-
-		while(ptr = strchr(tmpfile, '/'), ptr)
+		/** Skip 1th '/' */
+		if ( p - s )
 		{
-			*ptr++ = 0;
+			/** Mark the child directory name */
+			*p = 0;
 
-			if(access(tmpfile, F_OK))
+			/** Build the child directory */
+			snprintf ( fullname, FILENAME_MAX, "%s/%s", strdupa ( fullname ), s );
+
+			if ( mkdir ( fullname, RC_PATH_MODE ) < 0 && EEXIST != errno )
 			{
-				mkdir(tmpfile, 0755);
+				error ( "Failed to create directory '%s': %s", fullname, strerror ( errno ) );
+				return -1;
 			}
-
-			chdir(tmpfile);
-
-			strcpy(tmpfile, ptr);
 		}
 
-		/* back to config dir */
-		chdir(cfgfile);
+		/** Do next */
+		s = ++p;
 	}
 
-	FILE *fp = fopen(filename, "w+");
-	struct hash *item = NULL;
+	/** Generate the filename */
+	snprintf ( fullname, FILENAME_MAX, "%s/%s", strdupa ( fullname ), s );
 
-	while(arr && (item = (struct hash *)*arr++))
+	if ( !ENDWITH ( filename, "/" ) )
 	{
-		fprintf(fp, "%s=%s", item->key, item->value);
+		FILE *fp = fopen ( fullname, rc ? "w+" : "a" );
+		struct hash *item = NULL;
+		struct stat st;
 
-		fprintf(fp, "\r\n\r\n");
+		if ( NULL == fp )
+		{
+			error ( "Failed to open '%s': %s", fullname, strerror ( errno ) );
+			return -1;
+		}
+
+		fstat ( fileno ( fp ), &st );
+
+		if ( !S_ISREG ( st.st_mode ) )
+		{
+			fclose ( fp );
+			error ( "File '%s' is not an regular file.", fullname );
+
+			return -1;
+		}
+
+		if ( rc )
+		{
+			while ( item = ( struct hash * )*rc++, item )
+			{
+				fprintf ( fp, "%s = %s", item->key, item->value );
+
+				fputs ( "\r\n\r\n", fp );
+			}
+		}
+		fclose ( fp );
 	}
 
-	fclose(fp);
+	return 0;
+}
+
+const char *rcpath ( void )
+{
+	static char path[PATH_MAX] = { 0 };
+
+	/** Whether has been initialization */
+	if ( !*path )
+	{
+		/** Avoid the directory of "(null)" has been created */
+		char *cwd = get_current_dir_name (), *fallback = NULL;
+
+		/** Check XDG_CONFIG_HOME directory */
+		snprintf ( path, PATH_MAX, "%s", getenv ( "XDG_CONFIG_HOME" ) );
+		
+		/** Change working directory to $XDG_CONFIG_HOME */
+		if ( chdir ( path ) < 0 )
+		{
+			error ( "Failed to change working directory to '%s': %s", path, strerror ( errno ) );
+
+			goto fallback;
+		}
+
+		if ( mkdir ( RC_XDG_PATH, RC_PATH_MODE ) < 0 && EEXIST != errno )
+		{
+			error ( "Failed to create directory '%s': %s", RC_XDG_PATH, strerror ( errno ) );
+
+			goto fallback;
+		}
+
+		snprintf ( path, PATH_MAX, "%s/%s", getenv ( "XDG_CONFIG_HOME" ), RC_XDG_PATH );
+
+		fallback = path;
+fallback:
+		chdir ( cwd );
+		free ( cwd );
+
+		/** Default use $HOME path */
+		if ( !fallback )
+		{
+			snprintf ( path, PATH_MAX, "%s/%s", getenv ( "HOME" ), RC_HOME_PATH );
+
+			if ( mkdir ( path, RC_PATH_MODE ) < 0 && EEXIST != errno )
+			{
+				error ( "Failed to create directory '%s': %s", RC_HOME_PATH, strerror ( errno ) );
+
+				return NULL;
+			}
+		}
+	}
+
+	return path;
 }

@@ -13,6 +13,9 @@
 #include <ncurses.h>
 #include <signal.h>
 
+#define ASCII_HEART 				"heart.text"
+#define ASCII_HEARTNO 				"heartno.text"
+
 #define SCREEN_UPDATE() 			raise(SIGWINCH), raise(SIGUSR1)
 
 /* ++++ */

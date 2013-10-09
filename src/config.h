@@ -1,19 +1,21 @@
 /*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * Licensed under the LGPL v2.1, see the file COPYING in base directory.
  *
- * tn.razy@gmail.com
+ * Copyright (C) 2013 <tn.razy@gmail.com>
+ *
  */
 
-#ifndef CONFIG_H
-#define CONFIG_H
+
+#ifndef _CONFIG_H
+#define _CONFIG_H
 
 #include "hash.h"
 
-#define CFG_PATH 				"dbfm"
-#define CFG_FILE 				"dbfm.conf"
+#define RC_XDG_PATH 				"doubanFM"
+#define RC_HOME_PATH 				".doubanFM"
+#define RC_PATH_MODE 				0755
+
+#define RC_FILENAME 				"dbfm.rc"
 
 struct user
 {
@@ -22,8 +24,12 @@ struct user
 	char email[32], password[32];
 };
 
-void loadcfg(struct hash ***arr, const char *file);
+int loadrc ( struct hash *** const rc, const char *filename );
 
-void mkcfg(const struct hash **arr, const char *filename);
+int mkrc ( const struct hash ** rc, const char *filename );
+
+void destroyrc ( struct hash ** const rc );
+
+const char *rcpath ( void );
 
 #endif

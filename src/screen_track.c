@@ -60,7 +60,7 @@ void scr_track(void *args)
 		{
 			attr = (attr & 0) | COLOR_HEART | A_BOLD;
 
-			snprintf(heart, FILENAME_MAX, "%s/%s/heart.text", getenv("XDG_CONFIG_HOME"), CFG_PATH);
+			snprintf(heart, FILENAME_MAX, "%s/heart.text", rcpath());
 		}
 		else
 			goto out;
@@ -68,7 +68,7 @@ void scr_track(void *args)
 	else
 	{
 		out:
-		snprintf(heart, FILENAME_MAX, "%s/%s/heartno.text", getenv("XDG_CONFIG_HOME"), CFG_PATH);
+		snprintf(heart, FILENAME_MAX, "%s/heartno.text", rcpath());
 	}
 
 	refresh();
@@ -175,7 +175,7 @@ static void scr_drawprgs(int ignore)
 
 	scr_progress(&prgs);
 
-	alarm(1);
+	/*alarm(1);*/
 }
 
 static void scr_resetprgs(int ignore)

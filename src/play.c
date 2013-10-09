@@ -57,7 +57,7 @@ void play(const char *location)
 
 	if(NULL == data.fp)
 	{
-		_WARN("stream is null");
+		warn("stream is null");
 		exit(EXIT_FAILURE);
 	}
 
@@ -127,7 +127,7 @@ static enum mad_flow input(void *data, struct mad_stream *stream)
 	{
 		if(-1 == nbyte)
 		{
-			_WARN("timeout or occurred an error");
+			warn("timeout or occurred an error");
 			exit(EXIT_SUCCESS);
 		}
 

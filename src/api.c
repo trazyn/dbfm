@@ -7,8 +7,6 @@
  * tn.razy@gmail.com
  */
 
-#define ___DEBUG
-
 #include "api.h"
 #include "log.h"
 #include "http.h"
@@ -61,7 +59,7 @@ char **api_send_request(enum cmd_type type, int sid, char *history)
 			break;
 	}
 
-	_DEBUG("URL: %s\n", url);
+	debug ("URL: %s\n", url);
 
 	return fetch(url, NULL, NULL, NULL);
 }

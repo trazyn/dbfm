@@ -1,84 +1,56 @@
-
 /*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * Licensed under the LGPL v2.1, see the file COPYING in base directory.
  *
- * tn.razy@gmail.com
+ * Copyright (C) 2013 <tn.razy@gmail.com>
+ *
  */
 
-#ifndef LOG_H
-#define LOG_H
+
+#ifndef _LOG_H
+#define _LOG_H
+
+#include <stdio.h>
 
 #define STR2(X) 			#X
-#define STR(X)                          STR2(X)
-#define AT                              __FILE__ ":" STR(__LINE__) ":\t"
+#define STR(X) 				STR2(X)
+#define AT 				STR(__LINE__) "," __FILE__
 
-#define COLOR_MAP(XX)                   \
-XX(RED,     31, "color of red")         \
-XX(GREEN,   32, "")                     \
-XX(YELLOW,  33, "")                     \
-XX(BLUE,    34, "")                     \
-XX(WHITE,   37, "")
+/**
+ * Default log prefix, eg:
+ * 	05-10-2013 22:11:11, [22L, utils.c]
+ * */
+#define DEFAULT_LOG_FMT 		"$date{%d-%m-%y} $time{%H:%M:%S}, [$file{%lL, %f}] "
 
-/* generator color */
-enum color_types
+/**
+ * eg: 
+ * 	05-10-2013 22:10:11, [17L, main.c] ERROR: There has an error be occurred.
+ * */
+#define DEFAULT_LOG_FMT_ERROR 		DEFAULT_LOG_FMT "ERROR: "
+
+#define DEFAULT_LOG_FMT_DEBUG 		DEFAULT_LOG_FMT "DEBUG: "
+
+#define DEFAULT_LOG_FMT_WARN 		DEFAULT_LOG_FMT "WARN : "
+
+#define DEFAULT_LOG_FMT_INFO 		DEFAULT_LOG_FMT "INFO : "
+
+typedef enum
 {
-	#define XX(NAME, VALUE, STRING) 			COLOR_##NAME = VALUE,
-	COLOR_MAP(XX)
-	#undef XX
-};
+	L_ERROR = 0,
+	L_DEBUG,
+	L_WARN,
+	L_INFO
+} log_type_t;
 
-/* bash color */
-#define COLOR_CODE                     				\033
-#define COLOR_START                     			STR(COLOR_CODE) "[4;"
-#define COLOR_END                       			STR(COLOR_CODE) "[0m"
+void openlog ( const char *log, const char *err );
 
-#ifdef MSG2_TERM
-#include <stdio.h>
-#define ___MSG(FP, PRE_MSG, MSG, COLOR, LOCAL)              	fprintf(FP, COLOR_START "%dm" "%s%s%s" COLOR_END "\n", COLOR, PRE_MSG, LOCAL, MSG)
-#else
-#define ___MSG(FP, PRE_MSG, MSG, COLOR, LOCAL) 		    	fprintf(FP, "%s%s%s" "\n", PRE_MSG, LOCAL, MSG)
-#endif
+void _log ( log_type_t type, const char *fmt, ... );
 
-#define MSG_MAP(XX)                                 		\
-/* info message */                                          	\
-XX(INFO,    0,   1,     "[INFO]",   COLOR_GREEN)            	\
-/* warn message */                                          	\
-XX(WARN,    1,   1,     "[WARN]",   COLOR_YELLOW)           	\
-/* error message */                                         	\
-XX(ERROR,   2,   2,     "[!ERR]",   COLOR_RED)              	\
-/* debug message */                                         	\
-XX(DEBUG,   3,   1,     "[#DBG]",   COLOR_BLUE)
+#define error( ... ) 		_log( L_ERROR, AT " |" __VA_ARGS__ )
+#define debug( ... ) 		_log( L_DEBUG, AT " |" __VA_ARGS__ )
+#define warn( ... ) 		_log( L_WARN,  AT " |" __VA_ARGS__ )
+#define info( ... ) 		_log( L_INFO,  AT " |" __VA_ARGS__ )
 
-enum msg_types
-{
-    	#define XX(NAME, VALUE, FP, PRE_MSG, COLOR)             MSG_##NAME = VALUE,
-    	MSG_MAP(XX)
-    	#undef XX
-
-    	/* end */
-    	MSG_UNKNOW
-};
-
-void openlog(const char *flog, const char *ferr);
-
-void closelog();
-
-void prmsg(enum msg_types msg_type, const char *format, ...);
-
-void die(const char *format, ...);
-
-
-#define _INFO(...)                                          	prmsg(MSG_INFO, __VA_ARGS__)
-#define _WARN(...)                                          	prmsg(MSG_WARN, __VA_ARGS__)
-#define _ERROR(...)                                         	prmsg(MSG_ERROR, AT __VA_ARGS__)
-
-#ifdef ___DEBUG
-#define _DEBUG(...)                                     	prmsg(MSG_DEBUG, AT __VA_ARGS__)
-#else
-#define _DEBUG(...) 						
-#endif
+#define die( ... ) 		_log( L_ERROR, __VA_ARGS__ ); 		\
+				exit ( EXIT_FAILURE )
 
 #endif

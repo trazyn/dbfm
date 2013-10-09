@@ -7,8 +7,7 @@
  * tn.razy@gmail.com
  */
 
-#include "log.h"
-#include "util.h"
+#define _GNU_SOURCE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,6 +19,9 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <pthread.h>
+
+#include "log.h"
+#include "util.h"
 
 struct looparg
 {
@@ -84,6 +86,31 @@ void prompt(const char *text, char *save, int size, enum input_type type)
 	*(save + n) = 0;
 
 	canon(1);
+}
+
+/**
+ * Replaced the specified string.
+ *
+ * */
+void str_replace ( char * const str, size_t size, const char *need, const char *to )
+{
+	char *ptr, *tail;
+
+	if ( ptr = strstr ( str, need ), ptr && ( strlen ( need ) >= strlen ( to ) 
+			|| ( strlen ( str ) + strlen ( to ) - strlen ( need ) ) <= size ) )
+	{
+		tail = strdupa ( ptr + strlen ( need ) );
+
+		/** Replace the "need" to "to" */
+		strcpy ( ptr, to );
+
+		/** Append the tail */
+		strcpy ( ptr + strlen ( to ), tail );
+	} else
+		return;
+
+	/** Recursive */
+	str_replace ( str, size, need, to );
 }
 
 void canon(int enable)

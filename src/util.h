@@ -10,9 +10,12 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#define BEGIN_WITH(str, s)                          	( strncmp((str), (s), strlen((s))) == 0 )
-#define END_WITH(str, s) 			  	( strncmp((str) + strlen((str)) - strlen((s)), (s), strlen((s))) == 0 )
-#define EQUAL(str, s) 					( BEGIN_WITH((str), (s)) && strlen((str)) == strlen((s)) )
+#include <stdio.h>
+
+#define EQUAL( a, b ) 					( 0 == strcmp( (a), (b) ) )
+#define STARTWITH( string, start ) 			( 0 == strncmp( (string), (start), strlen( (start) ) ) )
+#define ENDWITH( string, end ) 				EQUAL( ( (string) + strlen( ( string ) ) - strlen( (end) ) ), (end) )
+
 #define MAX(x, y) 					( (x) > (y) )
 #define ARRLEN(arr) 					sizeof (arr) / sizeof *(arr)
 
@@ -34,5 +37,7 @@ void canon(int enable);
 char *trackinfo(const struct hash **track, const char *fmt, char *buf, int size);
 
 int arridx(const char **arr, char *value);
+
+void str_replace ( char * const str, size_t size, const char *need, const char *to );
 
 #endif

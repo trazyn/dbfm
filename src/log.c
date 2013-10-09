@@ -1,140 +1,201 @@
 /*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * Licensed under the LGPL v2.1, see the file COPYING in base directory.
  *
- * tn.razy@gmail.com
+ * Copyright (C) 2013 <tn.razy@gmail.com>
+ *
  */
 
-#include "log.h"
+#define _GNU_SOURCE
 
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
-#include <stdio.h>
+#include <time.h>
+#include <errno.h>
 
-int msg_out[] =
+#include "log.h"
+#include "util.h"
+
+typedef struct
 {
-    	#define XX(NAME, VALUE, FP, PRE_MSG, COLOR)             (FP & 1) + 1,
-    	MSG_MAP(XX)
-    	#undef XX
+	unsigned int line;
+	char filename[FILENAME_MAX];
+} location_t;
 
-    	/* end */
-    	0
-};
+static void build_head ( log_type_t type, char * const head, size_t size, const location_t *location );
 
-int msg_color[] = 
+void openlog ( const char *log, const char *err )
 {
-    	#define XX(NAME, VALUE, FP, PRE_MSG, COLOR)             COLOR,
-    	MSG_MAP(XX)
-    	#undef XX
+	/** Reredict stdout and stderr */
+	log = log ? log : "/dev/null";
+	err = err ? err : "/dev/null";
 
-    	/* end */
-    	0
-};
-
-char *msg_prefix[] =
-{
-    	#define XX(NAME, VALUE, FP, PRE_MSG, COLOR)             PRE_MSG,
-    	MSG_MAP(XX)
-    	#undef XX
-
-    	NULL
-};
-
-
-static FILE *log = NULL;
-
-static FILE *err = NULL;
-
-void openlog(const char *flog, const char *ferr)
-{
-	if(flog)
+	if ( stdout = freopen ( log, "w+", stdout ), NULL == stdout )
 	{
-		log = fopen(flog, "a+");
+		die ( "Failed to open '%s' as stdout: %s", log, strerror ( errno ) );
+	}
 
-		log = log ? log : stdout;
-		
-		if(flog && ferr && 0 == strncasecmp(flog, ferr, strlen(ferr)))
+	if ( EQUAL ( log, err ) )
+	{
+		stderr = stdout;
+	} else
+	{
+		if ( stderr = freopen ( err, "w+", stderr ), NULL == stderr )
 		{
-			err = log;
+			die ( "Failed to open '%s' as stderr: %s", log, strerror ( errno ) );
+		}
+	}
 
-			return;
+	setbuf ( stdout, NULL );
+	setbuf ( stderr, NULL );
+}
+
+void _log ( log_type_t type, const char *format, ... )
+{
+	char message[BUFSIZ] = { 0 }, head[512] = { 0 };
+	va_list args;
+	location_t location;
+
+	va_start ( args, format );
+	vsnprintf ( message, BUFSIZ, format, args );
+	va_end ( args );
+
+	/** Get the location */
+	sscanf ( message, "%d, %s |%*s", &location.line, location.filename );
+
+	/** Skip the location */
+	snprintf ( message, BUFSIZ, "%s", strchr ( message, '|' ) + 1 );
+
+	build_head ( type, head, sizeof head, &location );
+
+	fprintf ( L_ERROR == type ? stderr : stdout, "%s%s\n", head, message );
+}
+
+static void build_head ( log_type_t type, char * const head, size_t size, const location_t *location )
+{
+	const char *keys[] = { "$time{", "$date{", "$file{", NULL };
+	char *begin, *walk, *format, buff[size];
+	struct tm *tm;
+
+	tm = localtime ( (time_t []) { time ( NULL ) } );
+	tm->tm_year += 1900;
+	tm->tm_mon += 1;
+
+	switch ( type )
+	{
+		case L_ERROR:
+			format = DEFAULT_LOG_FMT_ERROR;
+			break;
+
+		case L_DEBUG:
+			format = DEFAULT_LOG_FMT_DEBUG;
+			break;
+
+		case L_WARN:
+			format = DEFAULT_LOG_FMT_WARN;
+			break;
+
+		default:
+			format = DEFAULT_LOG_FMT_INFO;
+	}
+
+	for ( const char **key = keys; *key ; ++key )
+	{
+		memset ( buff, 0, size );
+
+		begin = walk = format;
+
+		while ( 1 )
+		{
+			walk = strcasestr ( begin, *key );
+
+			if ( walk )
+			{
+				/** Copy the normal text */
+				strncpy ( buff + strlen ( buff ), begin, walk - begin );
+
+				/** Skip the keyword */
+				begin = walk = walk + strlen ( *key );
+
+				/** Validate the expression */
+				if ( begin = strchr ( begin, '}' ), begin )
+				{
+					while ( walk < begin )
+					{
+						if ( '%' == *walk++ )
+						{
+							switch ( *walk++ )
+							{
+								if ( EQUAL ( "$time{" , *key ) )
+								{
+									case 'H':
+										snprintf ( buff, size, "%s%02d", strdupa ( buff ), tm->tm_hour );
+										break;
+
+									case 'M':
+										snprintf ( buff, size, "%s%02d", strdupa ( buff ), tm->tm_min );
+										break;
+
+									case 'S':
+										snprintf ( buff, size, "%s%02d", strdupa ( buff ), tm->tm_sec );
+										break;
+								}
+								else if ( EQUAL ( "$date{", *key ) )
+								{
+									case 'm':
+										snprintf ( buff, size, "%s%02d", strdupa ( buff ), tm->tm_mon );
+										break;
+
+									case 'd':
+										snprintf ( buff, size, "%s%02d", strdupa ( buff ), tm->tm_mday );
+										break;
+
+									case 'y':
+										snprintf ( buff, size, "%s%d", strdupa ( buff ), tm->tm_year );
+										break;
+								} else if ( EQUAL ( "$file{", *key ) )
+								{
+									case 'l':
+										snprintf ( buff, size, "%s%d", strdupa ( buff ), location->line );
+										break;
+
+									case 'f':
+										snprintf ( buff, size, "%s%s", strdupa ( buff ), location->filename );
+										break;
+								}
+
+								default:
+									/** Append the normal text */
+									strncat ( buff, walk - 2, 2 );
+							}
+						} else
+							/** Append */
+							strncat ( buff, walk - 1, 1 );
+					}
+
+					/** Skip "}" and reset walk */
+					walk = ++begin;
+
+					/** Continue scan current keyword */
+					continue;
+				}
+
+				/** Invalid expression and scan the next keyword */
+				snprintf ( buff, BUFSIZ, "%s%s%s", strdupa ( buff ), *key, walk );
+				break;
+			}
+
+			/** Append the tail */
+			snprintf ( buff, size, "%s%s", strdupa ( buff ), begin );
+
+			/** End current keyword */
+			break;
 		}
 
-	}
-	else if(NULL == log)
-		log = stdout;
-
-	if(ferr)
-	{
-		err = fopen(ferr, "a+");
-
-		err = err ? err : stderr;
-	}
-	else if(NULL == err)
-		err = stderr;
-}
-
-void closelog()
-{
-	if(log)
-	{
-		fclose(log);
-		log = NULL;
+		/** Next keyword and reset the pattern */
+		format = strdupa ( buff );
 	}
 
-	if(err)
-	{
-		fclose(err);
-		err = NULL;
-	}
-}
-
-void prmsg(enum msg_types msg_type, const char *format, ...)
-{
-	char buf[BUFSIZ] = { 0 };
-	va_list argv;
-
-	openlog(NULL, NULL);
-
-	if(msg_type < 0 || msg_type >= MSG_UNKNOW)
-	{
-		msg_type = MSG_INFO;
-	}
-	
-	va_start(argv, format);
-	vsnprintf(buf, sizeof buf, format, argv);
-	va_end(argv);
-
-	___MSG( 	msg_out[msg_type] == 2 ? err : log,
-	  		msg_prefix[msg_type],
-	  		buf, 
-	  		msg_color[msg_type], 
-	  		"");
-
-	fflush(log);
-	fflush(err);
-}
-
-void die(const char *format, ...)
-{
-	char buf[512] = { 0 };
-	va_list argv;
-
-	openlog(NULL, NULL);
-
-	va_start(argv, format);
-	vsnprintf(buf, sizeof buf, format, argv);
-	va_end(argv);
-
-	___MSG( 	err,
-			msg_prefix[MSG_ERROR],
-			buf, 
-			msg_color[MSG_ERROR], 
-			"");
-
-	exit(EXIT_FAILURE);
+	snprintf ( head, size, "%s", buff );
 }
 

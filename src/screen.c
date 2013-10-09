@@ -9,6 +9,7 @@
 
 #include "screen.h"
 #include "fm.h"
+#include "config.h"
 
 #include <stdlib.h>
 #include <unistd.h>
@@ -34,6 +35,9 @@ void scr_start()
 	curs_set(FALSE);
 
 	refresh();
+
+	mkrc ( NULL, ASCII_HEART );
+	mkrc ( NULL, ASCII_HEARTNO );
 
 	if(TRUE == has_colors())
 	{
@@ -196,5 +200,6 @@ static void scr_load(screen_t *screen, void *args)
 		scr_trackprgs(1);
 	}
 
+	printf ( "Start UI..\n" );
 	screen(args);
 }

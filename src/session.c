@@ -31,19 +31,15 @@ void session(void *data)
 
 	struct user *user = (struct user *)data;
 
-	char post[512], sessionfile[FILENAME_MAX], **resp = NULL;
+	char post[512], **resp = NULL;
 	struct json_object *obj;
 	struct stat st;
 	
 	static int keep = 0;
 
-	snprintf(sessionfile, FILENAME_MAX, "%s/%s/%s", getenv("XDG_CONFIG_HOME"), CFG_PATH, SESSION_FILE);
-
 	/* session file is exists and session not expire */
-	if(!access(sessionfile, F_OK | R_OK))
+	if(0 == loadrc(user->session, SESSION_FILE))
 	{
-		loadcfg(user->session, sessionfile);
-
 		if(atol(value((const struct hash **)*user->session, "expire")) > time(NULL))
 		{
 			/* session file is exists and sesison not expire */
@@ -65,7 +61,7 @@ login:
 
 		if(NULL == resp)
 		{
-			_ERROR("failed to get session");
+			error("failed to get session");
 
 			return;
 		}
@@ -81,7 +77,7 @@ login:
 	{
 		fputs("\r\n", stderr);
 
-		_ERROR("failed to get sesison: %s", err);
+		error("failed to get sesison: %s", err);
 
 		/* if in background exit */
 		if(fstat(STDIN_FILENO, &st) || !S_ISCHR(st.st_mode))
@@ -99,7 +95,7 @@ login:
 	}
 
 	session_parse(user->session, obj);
-	mkcfg((const struct hash **)*user->session, sessionfile);
+	mkrc((const struct hash **)*user->session, SESSION_FILE);
 
 keeping:
 	if(!keep)

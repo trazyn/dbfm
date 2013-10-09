@@ -22,9 +22,7 @@ static void channels_parse(struct hash ***arr, struct json_object *obj);
 
 void channels(struct hash ***arr)
 {
-	char channelfile[FILENAME_MAX], **resp;
-
-	snprintf(channelfile, FILENAME_MAX, "%s/%s/%s", getenv("XDG_CONFIG_HOME"), CFG_PATH, CHANNEL_FILE);
+	char **resp;
 
 	if(resp = fetch(CHANNEL_API, NULL, NULL, NULL), NULL == resp)
 	{
@@ -35,7 +33,7 @@ void channels(struct hash ***arr)
 
 	free_response(resp);
 
-	mkcfg((const struct hash **)*arr, channelfile);
+	mkrc((const struct hash **)*arr, CHANNEL_FILE);
 }
 
 static void channels_parse(struct hash ***arr, struct json_object *obj)

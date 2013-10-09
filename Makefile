@@ -1,7 +1,7 @@
 
 VPATH 			+= src
 
-#CC 			:= gcc
+CC 			:= gcc
 
 CFLAGS 			:= -Wall -Werror -std=gnu99
 

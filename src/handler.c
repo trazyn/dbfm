@@ -37,7 +37,7 @@ void handle(int listenfd)
 
 	if(0 == listenfd)
 	{
-		openlog(value((const struct hash **)rc, "log"), value((const struct hash **)rc, "err"));
+		/*openlog(value((const struct hash **)rc, "log"), value((const struct hash **)rc, "err"));*/
 
 		handle_screen();
 	}
@@ -48,7 +48,7 @@ void handle(int listenfd)
 			/* single mode */
 			if(-1 == (fd = accept(listenfd, NULL, 0)))
 			{
-				_ERROR("failed to accept client: %s", strerror(errno));
+				error("failed to accept client: %s", strerror(errno));
 			}
 
 			handle_client(fd);
@@ -65,7 +65,7 @@ int tcpsock(unsigned short port)
 
 	if(-1 == (listenfd = socket(AF_INET, SOCK_STREAM, 0)))
 	{
-		_ERROR("failed to creat socket: %s", strerror(errno));
+		error("failed to creat socket: %s", strerror(errno));
 
 		return -1;
 	}
@@ -73,7 +73,7 @@ int tcpsock(unsigned short port)
 	int option = 1;
 	if(-1 == (setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof option)))
 	{
-		_ERROR("failed to make socket re-usable: %s\n", strerror(errno));
+		error("failed to make socket re-usable: %s\n", strerror(errno));
 
 		return -1;
 	}
@@ -86,7 +86,7 @@ int tcpsock(unsigned short port)
 
 	if(bind(listenfd, (struct sockaddr *)&server, sizeof(struct sockaddr)))
 	{
-		_ERROR("failed to bind socket: %s", strerror(errno));
+		error("failed to bind socket: %s", strerror(errno));
 
 		return -1;
 	}
@@ -102,7 +102,7 @@ static void handle_client(int fd)
 
 	if(NULL == fp)
 	{
-		_ERROR("failed to open fd: %s", strerror(errno));
+		error("failed to open fd: %s", strerror(errno));
 
 		shutdown(fd, SHUT_RDWR);
 		

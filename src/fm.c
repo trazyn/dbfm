@@ -7,8 +7,6 @@
  * tn.razy@gmail.com
  */
 
-#define ___DEBUG
-
 #include "fm.h"
 #include "api.h"
 #include "play.h"
@@ -97,7 +95,7 @@ void fm_run(struct playlist *pl)
 
 			close(STDIN_FILENO);
 
-			_DEBUG("PLAY: %s(%d) | %d / %d\n", 
+			debug("PLAY: %s(%d) | %d / %d\n", 
 			  				value((const struct hash **)current, "title"),
 			  				value((const struct hash **)current, "sid"),
 			  				list->position, list->length);
@@ -247,7 +245,7 @@ static void *dl_thread(void *data)
 	{
 		if(1 != fwrite(buf, nbyte, 1, fp))
 		{
-			_ERROR("failed to download file: %s", strerror(errno));
+			error("failed to download file: %s", strerror(errno));
 			unlink(filename);
 			break;
 		}

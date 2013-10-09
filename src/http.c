@@ -7,8 +7,6 @@
  * tn.razy@gmail.com
  */
 
-#define ___DEBUG
-
 #include "http.h"
 #include "log.h"
 
@@ -40,7 +38,7 @@ static FILE *ropen(const char *host, unsigned short port, int timeout)
 
 	if(entry = gethostbyname(host), NULL == entry)
 	{
-		_ERROR("failed to get host(%s) info\n", host);
+		error("failed to get host(%s) info\n", host);
 
 		return NULL;
 	}
@@ -52,7 +50,7 @@ static FILE *ropen(const char *host, unsigned short port, int timeout)
 
 	if(-1 == (fd = socket(AF_INET, SOCK_STREAM, 0)))
 	{
-		_ERROR("failed to create socket: %s\n", strerror(errno));
+		error("failed to create socket: %s\n", strerror(errno));
 		return NULL;
 	}
 
@@ -89,7 +87,7 @@ static FILE *ropen(const char *host, unsigned short port, int timeout)
 	{
 		if(0 == ret)
 		{
-			_ERROR("connect to '%s' timeout", host);
+			error("connect to '%s' timeout", host);
 			return NULL;
 		}
 
@@ -98,7 +96,7 @@ static FILE *ropen(const char *host, unsigned short port, int timeout)
 			continue;
 		}
 
-		_ERROR("failed to connect '%s':'%s'", host, strerror(errno));
+		error("failed to connect '%s':'%s'", host, strerror(errno));
 		return NULL;
 	}
 
@@ -148,7 +146,7 @@ char **fetch(const char *url, FILE **handle, const char *post, const char *type)
 	size_t size = 0;
 	FILE *fp;
 
-	_DEBUG("URL: %s", url);
+	debug("URL: %s", url);
 
 	strncpy(urlcpy, url, sizeof urlcpy);
 
@@ -196,7 +194,7 @@ char **fetch(const char *url, FILE **handle, const char *post, const char *type)
 		shutdown(fileno(fp), SHUT_RDWR);
 		fclose(fp);
 
-		_ERROR("error response status: %s\n", status);
+		error("error response status: %s\n", status);
 
 		return NULL;
 	}
@@ -226,7 +224,7 @@ char **fetch(const char *url, FILE **handle, const char *post, const char *type)
 		*handle = fp;
 		return NULL;
 	}
-	_DEBUG("URL: %s", NULL == fp ? "ERR" : "OK");
+	debug("URL: %s", NULL == fp ? "ERR" : "OK");
 
 	return read_response(fp);
 }
