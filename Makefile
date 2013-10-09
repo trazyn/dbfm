@@ -1,7 +1,7 @@
 
 VPATH 			+= src
 
-CC 			:= gcc
+CC 			:= cc
 
 CFLAGS 			:= -Wall -Werror -std=gnu99
 
@@ -12,8 +12,7 @@ LDLIBS 			+= -lpthread
 LDLIBS 			+= -lncurses
 
 MAIN 			:= ./src/main.c
-TEST 			:= ./test.c
-BINNAME 		:= dbfm
+BINNAME 		:= doubanFM
 
 SOURCE 			:= ${filter-out $(TEST), $(shell find "./src" -type f -name "*.c")}
 OBJECT 			:= ${patsubst %.c, %.o, $(SOURCE)}
@@ -26,6 +25,5 @@ main: 			$(OBJECT)
 	$(CC) $(LDLIBS) $(OBJECT) -o $(BINNAME)
 
 clean: 
-	cd ./src && rm *.o
-	-rm $(BINNAME)
-	-rm $(BINTEST)
+	find -name "*.o" -type f -exec rm {} \;
+	rm $(BINNAME)
