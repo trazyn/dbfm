@@ -96,10 +96,15 @@ void str_replace ( char * const str, size_t size, const char *need, const char *
 {
 	char *ptr, *tail;
 
-	if ( ptr = strstr ( str, need ), ptr && ( strlen ( need ) >= strlen ( to ) 
-			|| ( strlen ( str ) + strlen ( to ) - strlen ( need ) ) <= size ) )
+	if ( ptr = strstr ( str, need ), ptr && 
+			( strlen ( str ) + strlen ( to ) - strlen ( need ) ) <= size )
 	{
-		tail = strdupa ( ptr + strlen ( need ) );
+		#ifdef __linux__
+			tail = strdupa ( ptr + strlen ( need ) );
+		#else
+			tail = alloca ( strlen ( ptr + strlen ( need ) ) + 1 );
+			strcpy ( tail, ptr + strlen ( need ) );
+		#endif
 
 		/** Replace the "need" to "to" */
 		strcpy ( ptr, to );
@@ -234,3 +239,4 @@ int arridx(const char **arr, char *value)
 
 	return -1;
 }
+

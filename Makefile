@@ -25,5 +25,5 @@ main: 			$(OBJECT)
 	$(CC) $(LDLIBS) $(OBJECT) -o $(BINNAME)
 
 clean: 
-	find -name "*.o" -type f -exec rm {} \;
+	cd ${VPATH}; rm *.o
 	rm $(BINNAME)

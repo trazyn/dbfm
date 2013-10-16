@@ -15,7 +15,7 @@
 #define RC_HOME_PATH 				".doubanFM"
 #define RC_PATH_MODE 				0755
 
-#define RC_FILENAME 				"dbfm.rc"
+#define RC_FILENAME 				"doubanFM.rc"
 
 struct user
 {

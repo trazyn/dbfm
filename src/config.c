@@ -14,7 +14,14 @@
 #include <errno.h>
 #include <ctype.h>
 #include <sys/stat.h>
-#include <linux/limits.h> 			/** For PATH_MAX */
+
+
+/** For PATH_MAX */
+#ifdef __APPLE__
+	#include <sys/syslimits.h>
+#elif __linux__
+	#include <linux/limits.h>
+#endif
 
 #include "log.h"
 #include "config.h"
@@ -96,11 +103,18 @@ ignore:
 
 int mkrc ( const struct hash ** rc, const char *filename )
 {
+#ifdef __APPLE__
+	char *string = NULL;
+#define strdupa(s)			( string = alloca ( strlen ( (s) ) + 1 ), strcpy ( string, (s) ), string )
+#endif
+
 	char fullname[FILENAME_MAX] = { 0 }, *s, *p;
 
 	snprintf ( fullname, FILENAME_MAX, "%s", rcpath () );
 
 	s = strdupa ( filename );
+
+	debug ( "Create '%s', %s, %s", filename, fullname, s );
 
 	while ( p = strchr ( s, '/' ), p )
 	{
@@ -111,7 +125,7 @@ int mkrc ( const struct hash ** rc, const char *filename )
 			*p = 0;
 
 			/** Build the child directory */
-			snprintf ( fullname, FILENAME_MAX, "%s/%s", strdupa ( fullname ), s );
+			snprintf ( fullname, FILENAME_MAX, "%s/%s", ( strdupa ( fullname ) ), s );
 
 			if ( mkdir ( fullname, RC_PATH_MODE ) < 0 && EEXIST != errno )
 			{
@@ -125,7 +139,7 @@ int mkrc ( const struct hash ** rc, const char *filename )
 	}
 
 	/** Generate the filename */
-	snprintf ( fullname, FILENAME_MAX, "%s/%s", strdupa ( fullname ), s );
+	snprintf ( fullname, FILENAME_MAX, "%s/%s", ( strdupa ( fullname ) ), s );
 
 	if ( !ENDWITH ( filename, "/" ) )
 	{
@@ -172,7 +186,7 @@ const char *rcpath ( void )
 	if ( !*path )
 	{
 		/** Avoid the directory of "(null)" has been created */
-		char *cwd = get_current_dir_name (), *fallback = NULL;
+		char *cwd = getcwd ( NULL, 0 ), *fallback = NULL;
 
 		/** Check XDG_CONFIG_HOME directory */
 		snprintf ( path, PATH_MAX, "%s", getenv ( "XDG_CONFIG_HOME" ) );
@@ -180,7 +194,7 @@ const char *rcpath ( void )
 		/** Change working directory to $XDG_CONFIG_HOME */
 		if ( chdir ( path ) < 0 )
 		{
-			error ( "Failed to change working directory to '%s': %s", path, strerror ( errno ) );
+			error ( "Failed to change working directory to XDG_CONFIG_HOME." );
 
 			goto fallback;
 		}

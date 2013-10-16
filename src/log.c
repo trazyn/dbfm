@@ -99,6 +99,10 @@ static void build_head ( log_type_t type, char * const head, size_t size, const 
 			format = DEFAULT_LOG_FMT_INFO;
 	}
 
+#ifdef __APPLE__
+#define strdupa(string) 		( string )
+#endif
+
 	for ( const char **key = keys; *key ; ++key )
 	{
 		memset ( buff, 0, size );

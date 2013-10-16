@@ -159,35 +159,3 @@ static inline char * pidfile_name ( void )
 
 	return filename;
 }
-
-/*int main ( int argc, const char **argv )*/
-/*{*/
-	/*info ( "Test..." );*/
-
-	/*if ( argc >= 2 )*/
-	/*{*/
-		/*daemonize_kill ();*/
-	/*}*/
-
-	/*[>daemonize ( NULL, NULL );<]*/
-
-
-/*#include "config.h"*/
-/*#include "hash.h"*/
-
-	/*struct hash **rc = NULL;*/
-
-	/*loadrc ( &rc, RC_FILENAME );*/
-
-	/*debug ( "Channel: %s", value ( ( const struct hash ** )rc, "channel" ) );*/
-	/*debug ( "Download: %s", value ( ( const struct hash ** )rc, "download" ) );*/
-
-	/*info ( "Mkrc 'test.rc'" );*/
-
-	/*mkrc ( ( const struct hash ** ) rc, "test.rc" );*/
-	/*mkrc ( ( const struct hash ** ) rc, "aa/test.rc" );*/
-
-	/*sleep ( 10000 );*/
-
-	/*return EXIT_SUCCESS;*/
-/*}*/
