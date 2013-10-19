@@ -114,8 +114,6 @@ int mkrc ( const struct hash ** rc, const char *filename )
 
 	s = strdupa ( filename );
 
-	debug ( "Create '%s', %s, %s", filename, fullname, s );
-
 	while ( p = strchr ( s, '/' ), p )
 	{
 		/** Skip 1th '/' */
