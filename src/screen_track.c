@@ -175,7 +175,7 @@ static void scr_drawprgs(int ignore)
 
 	scr_progress(&prgs);
 
-	/*alarm(1);*/
+	alarm(1);
 }
 
 static void scr_resetprgs(int ignore)
