@@ -25,5 +25,5 @@ main: 			$(OBJECT)
 	$(CC) $(LDLIBS) $(OBJECT) -o $(BINNAME)
 
 clean: 
-	cd ${VPATH}; rm *.o
-	rm $(BINNAME)
+	@cd ${VPATH}; rm *.o 2> /dev/null
+	@rm $(BINNAME) 2> /dev/null
