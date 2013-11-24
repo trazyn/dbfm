@@ -12,7 +12,7 @@ LDLIBS 			+= -lpthread
 LDLIBS 			+= -lncurses
 
 MAIN 			:= ./src/main.c
-BINNAME 		:= doubanFM
+BINNAME 			:= doubanFM
 
 SOURCE 			:= ${filter-out $(TEST), $(shell find "./src" -type f -name "*.c")}
 OBJECT 			:= ${patsubst %.c, %.o, $(SOURCE)}
