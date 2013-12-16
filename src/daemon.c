@@ -155,7 +155,11 @@ static inline char * pidfile_name ( void )
 {
 	static char filename[FILENAME_MAX];
 
+#ifdef __linux__
 	snprintf ( filename, FILENAME_MAX, PID_FILE, getuid () );
+#elif __APPLE__
+	snprintf ( filename, FILENAME_MAX, PID_FILE );
+#endif
 
 	return filename;
 }
