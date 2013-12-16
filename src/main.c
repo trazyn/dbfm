@@ -29,7 +29,7 @@
 
 static void usage ( void );
 
-static void sig_exit (int signo );
+static void sig_exit ( int signo );
 
 static void safe_exit ( void );
 
@@ -44,7 +44,7 @@ static struct user user = { .session = &token, .email = { 0 }, .password = { 0 }
 int main ( int argc, char **argv )
 {
 	char filename[FILENAME_MAX] = { 0 };
-	const char short_options[] = "hndDe:p:";
+	const char short_options[] = "hnxdDe:p:";
 
 	const struct option long_options[] = 
 	{
@@ -52,6 +52,7 @@ int main ( int argc, char **argv )
 		{ "email", 	required_argument, 	NULL, 'e' },
 		{ "password", 	required_argument, 	NULL, 'p' },
 		{ "daemon", 	no_argument, 		NULL, 'd' },
+		{ "exit", 	no_argument, 		NULL, 'x' },
 		{ "debug", 	no_argument, 		NULL, 'D' },
 		{ NULL, 	0, 			NULL,  0  }
 	};
@@ -64,9 +65,9 @@ int main ( int argc, char **argv )
 
 	register int opt_next;
 
-	while( opt_next = getopt_long ( argc, ( char * const * )argv, short_options, long_options, NULL ), -1 != opt_next )
+	while ( opt_next = getopt_long ( argc, (char * const *)argv, short_options, long_options, NULL ), -1 != opt_next )
 	{
-		switch( opt_next )
+		switch ( opt_next )
 		{
 			case 'h':
 				usage ();
@@ -85,6 +86,10 @@ int main ( int argc, char **argv )
 
 			case 'D':
 				debug = !debug;
+				break;
+
+			case 'x':
+				daemonize_kill ();
 				break;
 
 			case 'p':
@@ -108,9 +113,9 @@ int main ( int argc, char **argv )
 	/** If configuration file is not exists then create it */
 	mkrc ( NULL, RC_FILENAME );
 
-	if ( loadrc ( &rc, RC_FILENAME ) < 0) exit( EXIT_FAILURE );
+	if ( loadrc ( &rc, RC_FILENAME ) < 0 ) exit( EXIT_FAILURE );
 
-	if( background && !debug )
+	if ( background && !debug )
 	{
 		const char *port = value ( ( const struct hash ** )rc, "port" );
 		unsigned short nport = port ? atoi ( port ) : 7000;
@@ -123,7 +128,7 @@ int main ( int argc, char **argv )
 		signal ( SIGUSR1, SIG_IGN );
 
 		/* run as daemon */
-		daemonize ( value ( ( const struct hash ** )rc, "log" ), value ( ( const struct hash ** )rc, "err" ) );
+		daemonize ( value ( (const struct hash **)rc, "log" ), value ( (const struct hash **)rc, "err" ) );
 	}
 	else
 	{
@@ -187,10 +192,11 @@ static void usage ( void )
 {
 	fprintf ( stderr, 
 	  	"\n"
-	  	"-e, --email, 	 email for login to www.douban.fm\n"
-	  	"-p, --password, password\n"
-	  	"-d, --daemon,   run as daemon\n"
-	  	"-h, --help,     printf help\n"
+	  	"-e, --email, 	 Email for login to www.douban.fm\n"
+	  	"-p, --password, Password\n"
+	  	"-d, --daemon,   Run as daemon\n"
+	  	"-x, --exit, 	 Exit"
+	  	"-h, --help,     Help\n"
 	  	"\n"
 	  	);
 
@@ -211,7 +217,7 @@ static void safe_exit ( void )
 
 	if ( NULL != rc )
 	{
-		mkrc ( ( const struct hash** )rc, RC_FILENAME );
+		mkrc ( (const struct hash**)rc, RC_FILENAME );
 	}
 
 	exit ( EXIT_SUCCESS );

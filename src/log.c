@@ -64,7 +64,10 @@ void _log ( log_type_t type, const char *format, ... )
 	sscanf ( message, "%d, %s |%*s", &location.line, location.filename );
 
 	/** Skip the location */
-	snprintf ( message, BUFSIZ, "%s", strchr ( message, '|' ) + 1 );
+	if ( strchr ( message, '|' ) ) 
+	{
+		snprintf ( message, BUFSIZ, "%s", strchr ( message, '|' ) + 1 );
+	}
 
 	build_head ( type, head, sizeof head, &location );
 

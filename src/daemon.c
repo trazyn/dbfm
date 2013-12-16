@@ -118,7 +118,7 @@ static int pidfile_register ( void )
 				error ( "Failed to read file lock from '%s': %s", filename, strerror ( errno ) );
 			} else
 			{
-				error ( "Already has an instance of %lu", ( unsigned long )lock.l_pid );
+				error ( "Already has an instance of %lu", (unsigned long)lock.l_pid );
 			}
 			goto failed;
 		}
