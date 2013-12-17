@@ -78,7 +78,7 @@ void daemonize_kill ( void )
 		die ( "Failed to open pid file '%s': %s", filename, strerror ( errno ) );
 	}
 
-	if ( 1 != fscanf ( fp, "%lu", ( unsigned long * )&pid ) )
+	if ( 1 != fscanf ( fp, "%lu", (unsigned long *)&pid ) )
 	{
 		die ( "Failed to read pid from pid file '%s': %s", filename, strerror ( errno ) );
 	}
@@ -128,7 +128,7 @@ static int pidfile_register ( void )
 	}
 
 	memset ( buff, 0, 20 );
-	snprintf ( buff, 20, "%lu\n", ( unsigned long )getpid() );
+	snprintf ( buff, 20, "%lu\n", (unsigned long)getpid() );
 
 	ftruncate ( fd, 0 );
 

@@ -120,25 +120,26 @@ int main ( int argc, char **argv )
 		const char *port = value ( ( const struct hash ** )rc, "port" );
 		unsigned short nport = port ? atoi ( port ) : 7000;
 
-		if ( -1 == ( listenfd = tcpsock ( nport ) ) )
-		{
-			exit ( EXIT_FAILURE );
-		}
-
 		signal ( SIGUSR1, SIG_IGN );
 
 		/* run as daemon */
 		daemonize ( value ( (const struct hash **)rc, "log" ), value ( (const struct hash **)rc, "err" ) );
+
+		if ( -1 == ( listenfd = tcpsock ( nport ) ) )
+		{
+			exit ( EXIT_FAILURE );
+		}
 	}
 	else
 	{
-		signal ( SIGINT, sig_exit );
-
 		canon ( 0 );
 
 		info ( "Waiting..." );
 		info ( "Will be running..." );
 	}
+
+	signal ( SIGINT, sig_exit );
+	signal ( SIGTERM, sig_exit );
 
 	fm_run ( &playlist );
 	
@@ -184,8 +185,9 @@ int main ( int argc, char **argv )
 		}
 	}
 
-	/*openlog ( value ( ( const struct hash ** )rc, "log" ), value ( ( const struct hash ** )rc, "err" ) );*/
 	handle ( listenfd );
+
+	return EXIT_SUCCESS;
 }
 
 static void usage ( void )
