@@ -22,8 +22,6 @@ static inline char * pidfile_name ( void );
 
 static int pidfile_register ( void );
 
-static void pidfile_destroy ( void );
-
 void daemonize ( const char *log, const char *err )
 {
 	/** Flush all the file */
@@ -135,20 +133,12 @@ static int pidfile_register ( void )
 	/** Write the pid */
 	write ( fd, buff, strlen ( buff ) );
 
-	/** Destroy pid file by SIGTERM or exit */
-	signal ( SIGTERM, ( void * ) pidfile_destroy );
-	atexit ( pidfile_destroy );
-
+	/** Hold the PID file */
 	return 0;
 
 failed:
 	close( fd );
 	return -1;
-}
-
-static void pidfile_destroy ( void )
-{
-	unlink ( pidfile_name () );
 }
 
 static inline char * pidfile_name ( void )
