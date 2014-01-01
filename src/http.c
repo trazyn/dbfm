@@ -25,10 +25,6 @@ static FILE *ropen(const char *host, unsigned short port, int timeout);
 
 static char **read_response(FILE *fp);
 
-static char to_hex(char ch);
-
-static char from_hex(char ch);
-
 static FILE *ropen(const char *host, unsigned short port, int timeout)
 {
 	int fd, ret;
@@ -276,90 +272,5 @@ size_t timeout_read(int fd, char *buf, size_t size, int nsec)
 	}
 
 	return read(fd, buf, size);
-}
-
-char *url_encode(const char *str)
-{
-	char *s = calloc(strlen(str) * 3 + 1, 1), *ptr = s;
-
-	while(*str)
-	{
-		if(*str == '-' || *str == '~' || *str == '_' || *str == '.'
-		  	/* isalnum */
-		  	|| (*str >= 0 && *str <= 9)
-		  	|| (*str >= 'a' && *str <= 'z')
-		  	|| (*str >= 'A' && *str <= 'Z'))
-			*s++ = *str;
-
-		else if(*str == ' ')
-		{
-			*s++ = '+';
-		}
-		else
-		{
-			/* %H4L4 */
-			*s++ = '%', *s++ = to_hex(*str >> 4), *s++ = to_hex(*str & 0XF);
-		}
-
-		++str;
-	}
-
-	*s = '\0';
-
-	return ptr;
-}
-
-char *url_decode(const char *str)
-{
-	char *s = calloc(strlen(str) + 1, 1), *ptr = s;
-
-	while(*str)
-	{
-		if(*str == '%')
-		{
-			if(str[1] && str[2])
-			{
-				/* H4 | L4 */
-				*s++ = from_hex(str[1]) << 4 | from_hex(str[2]);
-
-				/* skip H4 and L4 */
-				str += 2;
-			}
-		}
-		else if(*str == '+')
-		{
-			*s++ = ' ';
-		}
-
-		else
-		{
-			*s++ = *str;
-		}
-
-		++str;
-	}
-
-	*s = '\0';
-
-	return ptr;
-}
-
-static char to_hex(char ch)
-{
-	static char hex[] = "0123456789abcdef";
-	return hex[ch & 15];
-}
-
-static char from_hex(char ch)
-{
-	if(ch > 0 && ch < 9)
-		return ch - '0';
-	else
-	{ 
-		if(ch > 'A' && ch < 'Z')
-			ch = ch + 'a' - 'A';
-	}
-
-	return ch - 'a' + 10;
 }
 

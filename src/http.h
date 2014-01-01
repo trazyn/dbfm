@@ -29,8 +29,4 @@ void free_response(char **ptr);
 
 size_t timeout_read(int fd, char *buf, size_t size, int nsec);
 
-char *url_encode(const char *str);
-
-char *url_decode(const char *str);
-
 #endif
